@@ -1,0 +1,7 @@
+{
+  "mobileTemplate": "expo",
+  "platforms": [
+    "android",
+    "ios"
+  ]
+}
