@@ -18,6 +18,10 @@ _(Mid-flight or top-priority. Usually 1–3 items.)_
 
 _(Approved, ready to pick up, not started yet.)_
 
+- [ ] **`check.sh` + bots (ADR 0003)** after Godot stage 1 lands. One command runs the Godot headless tests (smoke, sweep, shooters, …), the level validator, and a bot that clears every ported level. The web prototype gets the same through `window.__dbg`. It must be green before every commit.
+- [ ] **`context/build-guide.md`**: the rulebook every code session follows (Godot settings, the Matter.js → Godot mapping and units, physics numbers, layout). Start it from `.claude/agents/godot-porter.md` and stage 1's real numbers.
+- [ ] **The first overnight run (ADR 0005)** once `check.sh` exists. A candidate north star: "Godot stage 2: all enemies and features, playable by morning."
+
 - [ ] Godot port stage 2 (all enemies and features), stage 3 (all 40 levels), stage 4 (Android `.apk` export)
 - [ ] Decide what to do with the unused Expo scaffold in `mobile/` (delete it, or keep it for a companion app)
 - [ ] App-readiness polish (rest of the old "work offline" item): use reliable storage instead of localStorage, add icons/splash, lock orientation, keep the screen awake
