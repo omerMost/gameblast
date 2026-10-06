@@ -9,16 +9,18 @@ Seed this file during install (don't leave blank) — stack choices are usually 
 
 One section per layer. For each choice: what we picked + one-line rationale. Resist writing prose — this is a lookup table, not an essay.
 
-> Status 2026-10-06: the only working code is `prototype/index.html`. Engine decided: Godot 4 (ADR 0002). The port hasn't started.
+> Status 2026-10-07: the prototype is still the spec. The Godot port has reached stage 1 (core loop, levels 1–5), verified headlessly. Android toolchain is not installed yet.
 
 ## Runtime / language
 
 - Prototype (`prototype/index.html`): vanilla JavaScript in the browser, one file, no build step. Matter.js 0.19.0 is vendored at `prototype/vendor/matter.min.js`, and the fonts (Lilita One 400, Nunito variable 800–900, latin woff2) are in `prototype/fonts/` with local `@font-face` rules. It needs no network (source URLs are in `prototype/README.md`).
-- App: **Godot 4 + GDScript** in `godot/`, Android first (ADR 0002). Not built yet. Record the exact Godot version once it's installed.
+- App: **Godot 4.7.2.stable.official (ed1daf0bf) + GDScript** in `godot/`, Android first (ADR 0002). Installed with `brew install --cask godot` (`/Applications/Godot.app`, CLI `/opt/homebrew/bin/godot`). Renderer `gl_compatibility` (widest Android support), built-in GodotPhysics2D at 60 ticks with 16 solver iterations, gravity 1000 px/s². Physics-parity rules are in ADR 0006.
+- Not installed yet (stage 4): Godot export templates, JDK 17, Android SDK/NDK, debug keystore.
 
 ## UI / presentation layer
 
-- Prototype: HTML5 canvas 2D, hand-drawn particles/effects. Physics: **Matter.js** (needs retuning if the engine changes).
+- Prototype: HTML5 canvas 2D, hand-drawn particles/effects. Physics: **Matter.js**.
+- Godot: everything is drawn procedurally in `_draw()` (`scripts/view.gd`, `background.gd`), mirroring the canvas code. No sprites or particle nodes yet. UI is built in code (`scripts/hud.gd`) with the Lilita One font copied to `godot/assets/fonts/`.
 
 ## Data layer
 
@@ -26,7 +28,7 @@ One section per layer. For each choice: what we picked + one-line rationale. Res
 
 ## Auth / storage / persistence
 
-- Prototype: localStorage (progress, toggles). Native: TBD (Capacitor Preferences was suggested). No auth.
+- Prototype: localStorage (progress, toggles). Godot: `user://save.json` (`autoload/save.gd`, same shape `{unlocked, stars, blood, music}`). No auth.
 
 ## External integrations
 
@@ -34,7 +36,7 @@ One section per layer. For each choice: what we picked + one-line rationale. Res
 
 ## Tooling (build, test, lint, CI)
 
-- Prototype was verified with headless auto-play (random shots across all levels, checking stability, clearability, and causeless deaths). The test hook is `window.__dbg`. Local dev: the `prototype` config in `.claude/launch.json` runs `python3 -m http.server` on port 8080. Repo tooling: TBD.
+- Prototype was verified with headless auto-play (random shots across all levels, checking stability, clearability, and causeless deaths). The test hook is `window.__dbg`. Local dev: the `prototype` config in `.claude/launch.json` runs `python3 -m http.server` on port 8080. Godot tests: `godot/tests/run.sh <smoke|sweep|shooters|selfharm>` runs a test scene headless with `--fixed-fps 60` (without it, headless runs in real time) and a watchdog (a script error doesn't make Godot exit). Diagnostics: `trace`, `trace_enemies`, `grid` (prints JSON lines to compare against the prototype's `__dbg`), `shot` (needs a window; saves PNGs). Repo tooling otherwise: TBD.
 
 ## What we deliberately did NOT pick
 

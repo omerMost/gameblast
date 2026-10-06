@@ -17,6 +17,10 @@ When to update: any change that alters the sequence, adds a step, or changes whe
 5. `explode()` applies a mass-aware, distance-falloff impulse (blocked by stone and walls), damages the player, cuts ropes, sets off barrels, breaks blocks and plays FX/SFX.
 6. `checkEnd()`: if every enemy is dead the level is **won**; stars come from shots used against par, and progress is saved to localStorage. If the player hits 0 HP or falls off-map, or runs out of ammo with no movement left, the level is **lost** and the death screen shows the cause from `CAUSES`.
 
+### Same flow in the Godot port (`godot/`)
+
+`main.gd` → `Game.start_level(i)` replays `Levels.LEVELS[i].build` through `LevelBuilder`, spawns the player (`lock_rotation`), then **settles for 30 physics ticks** (state `settle`, input off) and zeroes velocities. Godot can't step physics synchronously, so this can't be done invisibly like the prototype's 80 steps. Drag → `aim`, `View` draws `predict()`; release → `Game.fire()`. Each tick: Godot flushes contact signals (`GBody` → `Game.hit()`, which only sets flags and calls `later()`), then `Game._physics_process` runs the step (portals, fuses, `later()` queue, enemy upkeep and AI, end check) and finally `_before_update()` (enemy upright torque, cache `prev_v` for the next impact-speed check), then Godot steps physics. `explode()` uses the body AABB plus a ray query (statics and stone) for occlusion and `apply_impulse`. On win, stars go to `user://save.json` after the 1.7 s result delay.
+
 ## Failure paths
 
 - **Missing vendored files** (`vendor/matter.min.js` not served next to `index.html`): `Matter` is undefined and the game doesn't start. Missing `fonts/*.woff2` only makes the text fall back to the system font stacks. The game doesn't need internet.
