@@ -32,7 +32,7 @@ Blast Ranger — physics bazooka shooter game for Android/iOS.
 
 ## Known gaps (not bugs, just not done)
 
-- User reports a brief crowded-scene glitch. Device logs showed38.8–43.6FPS at260decals; retained meshes and audio prewarming address the rendering/first-impact costs. New phone samples show60FPS with101marks during play and260marks after a win; precise missile-stuck reproduction and broader crowded-scene confirmation remain pending. Debug-only `BR_PERF` logging supports diagnosis.
+- Connected-device playtest accepted by the user on2026-10-07: "ok it feels good" after the toggle/rendering/audio fixes. Phone samples held60FPS with101marks during play and260marks after a win. No permanent missile stall reproduced; if it recurs, capture the level/shot and `BR_PERF`. Broader device coverage remains untested.
 - The public artifact link is a frozen copy and won't pick up changes made in the repo.
 - Native debug APK installed on one Android16 ARM64 device; release signing/AAB and broader device coverage remain. No ads, no analytics, no store listings, no privacy policy.
 - The Godot port is a bit harder than the prototype in edge cases (ADR 0006 lists the gaps). FX uses flat colors instead of web gradients. Rope solver feel and PCM/echo/scheduling parity remain provisional; generated audio has not been auditioned through speakers.
