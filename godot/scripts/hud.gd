@@ -291,27 +291,33 @@ func show_title() -> void:
 	card_box.add_child(_text("Topple towers, outlast knights and archers, and bend your shots through portals and black holes."))
 	card_box.add_child(_big_btn("Play", "main", func(): main.play()))
 	card_box.add_child(_big_btn("Choose level", "ghost", func(): main.open_levels()))
-	var music := Button.new()
-	music.name = "MusicToggle"
-	music.flat = true
-	music.focus_mode = Control.FOCUS_NONE
-	music.text = "Music: " + ("on" if Save.prog.music else "off")
-	music.pressed.connect(func():
-		main.audio.toggle_music()
-		music.text = "Music: " + ("on" if Save.prog.music else "off"))
-	music.add_theme_color_override("font_color", Color(INK, 0.75))
-	var blood := Button.new()
-	blood.flat = true
-	blood.focus_mode = Control.FOCUS_NONE
-	blood.text = "Blood: " + ("on" if Save.prog.blood else "off")
-	blood.add_theme_color_override("font_color", Color(INK, 0.75))
-	blood.pressed.connect(func():
-		Save.prog.blood = not Save.prog.blood
+	var music := _setting_toggle("MusicToggle", "Music", Save.prog.music)
+	music.toggled.connect(func(on: bool):
+		if on != bool(Save.prog.music):
+			main.audio.toggle_music()
+		music.text = "Music: " + ("on" if on else "off"))
+	var blood := _setting_toggle("BloodToggle", "Blood", Save.prog.blood)
+	blood.toggled.connect(func(on: bool):
+		Save.prog.blood = on
 		Save.save()
-		blood.text = "Blood: " + ("on" if Save.prog.blood else "off"))
-	var toggles := _row([music, blood])
-	toggles.alignment = BoxContainer.ALIGNMENT_CENTER
-	card_box.add_child(toggles)
+		blood.text = "Blood: " + ("on" if on else "off"))
+	card_box.add_child(_row([music, blood]))
+
+
+func _setting_toggle(node_name: String, label: String, on: bool) -> Button:
+	var button := _big_btn(label + ": " + ("on" if on else "off"), "ghost", func(): pass)
+	button.name = node_name
+	button.toggle_mode = true
+	button.set_pressed_no_signal(on)
+	button.custom_minimum_size = Vector2(152, 56)
+	button.add_theme_font_size_override("font_size", 18)
+	# Stable bounds and explicit colors for touch's emulated hover/pressed states.
+	button.add_theme_stylebox_override("pressed", _box(TEAL, 18, 2, 16, 10))
+	button.add_theme_color_override("font_pressed_color", Color.WHITE)
+	button.add_theme_color_override("font_hover_pressed_color", Color.WHITE)
+	button.add_theme_stylebox_override("hover_pressed", button.get_theme_stylebox("pressed"))
+	return button
+
 
 
 func show_levels() -> void:

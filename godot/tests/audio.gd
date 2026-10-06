@@ -79,11 +79,18 @@ func _ready() -> void:
 	check(not a.muted and not AudioServer.is_bus_mute(AudioServer.get_bus_index(a.music_bus)), "unmute restores buses")
 	main.hud.show_title()
 	var toggle: Button = main.hud.card_box.find_child("MusicToggle", true, false)
-	toggle.pressed.emit()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var toggle_rect := toggle.get_global_rect()
+	check(toggle.toggle_mode and toggle.size.y >= 56, "music toggle has a full touch target")
+	toggle.button_pressed = not toggle.button_pressed
 	check(not Save.prog.music and not a.music_running and toggle.text == "Music: off", "title button persists music off")
+	await get_tree().process_frame
+	await get_tree().process_frame
+	check(toggle.get_global_rect() == toggle_rect, "music switch does not move on label change")
 	a.advance(2)
 	check(a.music_gain < .0001 and a.echoes.is_empty(), "music stop fades and clears echoes")
-	toggle.pressed.emit()
+	toggle.button_pressed = not toggle.button_pressed
 	check(Save.prog.music and a.music_running and toggle.text == "Music: on" and a.music_step == 0, "title button restarts score")
 	await Debug.start_level(0)
 	a.advance(.1)

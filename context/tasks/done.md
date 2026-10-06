@@ -26,3 +26,5 @@ When you complete a backlog item, move its bullet from `backlog.md` to here in t
 
 - [x] 2026-10-07 — Stage4 Android debug export: verified existing Godot4.7.2 templates/JDK17/SDK36 and local debug key; ARM64 APK exported and installed on connected Android16 device. Touch firing, saved stars/unlocks and preservation through an APK update verified. Existing launcher artwork, landscape, immersive mode and keep-awake configured.
 - [x] 2026-10-07 — Device picker feedback: grenade/rocket SVG pictures added; repeated decal-validity checks and weapon StyleBox allocations removed, Android drawing capped60FPS. Perceptual crowded-scene follow-up remains in backlog.
+
+- [x] 2026-10-07 — Device feedback follow-up: music/blood settings are stable56px toggle buttons, verified by real taps and save values. Decals retain clipped/pretriangulated meshes; Android SFX warm at startup. Phone samples held60FPS with101marks during play and260marks after a win; missile direct-shot test completed without a stall. Debug metrics use wall time and report level/state/draw CPU.

@@ -25,9 +25,9 @@ func _ready() -> void:
 			toggle = child
 	check(toggle != null, "title has a blood toggle")
 	if toggle:
-		toggle.pressed.emit()
+		toggle.button_pressed = not toggle.button_pressed
 		check(not Save.prog.blood and toggle.text == "Blood: off", "title toggle disables blood and updates its label")
-		toggle.pressed.emit()
+		toggle.button_pressed = not toggle.button_pressed
 		check(Save.prog.blood and toggle.text == "Blood: on", "title toggle enables blood and updates its label")
 
 	for enabled in [true, false]:
@@ -87,6 +87,14 @@ func _ready() -> void:
 		check(d.t == "blood" and d.r >= 3.9 and d.r <= 7.8 and d.dots.size() == 2, "decal size and satellite drops")
 		check(is_equal_approx(d.a, atan2(21.4, 100) * 0.15), "decal aligns to impact velocity")
 	var edge: Vector2 = (ground.poly[0] + ground.poly[1]) / 2
+	var mesh: ArrayMesh = main.view.decal_mesh(edge, Vector2(20, 10), 0.2)
+	check(mesh.get_surface_count() == 1, "clipped decal has a reusable mesh")
+	if mesh.get_surface_count() == 1:
+		var mesh_data := mesh.surface_get_arrays(0)
+		check(mesh_data[Mesh.ARRAY_INDEX].size() % 3 == 0, "cached decal contains complete triangles")
+		for point in mesh_data[Mesh.ARRAY_VERTEX]:
+			check(Geometry2D.is_point_in_polygon(point, ground.poly), "mesh decal stays clipped on ground")
+	check(main.view.decal_mesh(Vector2(-10000, -10000), Vector2.ONE * 10, 0).get_surface_count() == 0, "off-platform mesh is empty")
 	var clipped: Array = main.view.decal_polygons(edge, Vector2(20, 10), 0.2)
 	check(not clipped.is_empty(), "decal crossing platform edge is clipped")
 	check(main.view.valid_decal_polygons(edge, Vector2(20, 10), 0.2) == clipped, "validated decal cache preserves clipped geometry")

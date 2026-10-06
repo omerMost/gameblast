@@ -8,6 +8,7 @@ var cam: Camera2D
 var hud: Hud
 var bg: Background
 var audio: RangerAudio
+var perf_last_usec := 0
 var perf_time := 0.0
 var perf_frames := 0
 var perf_worst_ms := 0.0
@@ -83,11 +84,19 @@ func open_levels() -> void:
 
 func _process(_dt: float) -> void:
 	if OS.get_name() == "Android" and OS.is_debug_build():
-		perf_time += _dt
+		var now := Time.get_ticks_usec()
+		var elapsed := (now - perf_last_usec) / 1000000.0 if perf_last_usec > 0 else 0.0
+		perf_last_usec = now
+		if elapsed > 1.0: # Resume after backgrounding; begin a fresh active sample.
+			perf_time = 0.0
+			perf_frames = 0
+			perf_worst_ms = 0.0
+			elapsed = 0.0
+		perf_time += elapsed # Wall time, unaffected by intentional win slow-motion.
 		perf_frames += 1
-		perf_worst_ms = maxf(perf_worst_ms, _dt * 1000)
+		perf_worst_ms = maxf(perf_worst_ms, elapsed * 1000)
 		if perf_time >= 5.0:
-			print("BR_PERF fps=%.1f worst_frame_ms=%.1f bodies=%d particles=%d decals=%d" % [perf_frames / perf_time, perf_worst_ms, game.bodies.size(), game.particles.size(), game.decals.size()])
+			print("BR_PERF fps=%.1f worst_frame_ms=%.1f bodies=%d particles=%d decals=%d draw_cpu_ms=%.2f level=%d state=%s" % [perf_frames / perf_time, perf_worst_ms, game.bodies.size(), game.particles.size(), game.decals.size(), view.draw_cpu_ms, game.level_idx + 1, game.state])
 			perf_time = 0.0
 			perf_frames = 0
 			perf_worst_ms = 0.0

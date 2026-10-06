@@ -72,6 +72,10 @@ func _ready() -> void:
 	sfx_player = _player(sfx_bus, 32)
 	music_player = _player(music_bus, 64)
 	_apply_gain()
+	if OS.get_name() == "Android":
+		# Generate effects on the launch screen, before the first impact.
+		for key in EFFECTS:
+			effect_stream(key)
 
 func _exit_tree() -> void:
 	sfx_player.stop()

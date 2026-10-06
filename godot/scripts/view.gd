@@ -5,6 +5,7 @@ extends Node2D
 
 var game: Game
 var font: Font
+var draw_cpu_ms := 0.0
 var drag_active := false   # set by main while the player is aiming
 
 
@@ -42,6 +43,7 @@ func _fill_outline(pts: PackedVector2Array, fill: Color, line: Color, lw: float)
 func _draw() -> void:
 	if game == null or game.player == null:
 		return
+	var draw_start := Time.get_ticks_usec()
 	var t := Time.get_ticks_msec() / 1000.0
 	for e in game.portals:
 		_draw_portal(e, t)
@@ -78,6 +80,8 @@ func _draw() -> void:
 				draw_circle(p.pos, rad, Color("#7dffa2") if p.w else Color(1, 1, 1, 0.95))
 				draw_arc(p.pos, rad, 0, TAU, 12, Color(42 / 255.0, 33 / 255.0, 64 / 255.0, 0.55), 1.5 * r0 / 4.5)
 			i += 1
+
+	draw_cpu_ms = (Time.get_ticks_usec() - draw_start) / 1000.0
 
 
 func _draw_static(s: GStatic) -> void:
@@ -124,13 +128,35 @@ func valid_decal_polygons(center: Vector2, radius: Vector2, angle: float) -> Arr
 		return not Geometry2D.triangulate_polygon(polygon).is_empty())
 
 
+func decal_mesh(center: Vector2, radius: Vector2, angle: float) -> ArrayMesh:
+	var vertices := PackedVector2Array()
+	var indices := PackedInt32Array()
+	for polygon in decal_polygons(center, radius, angle):
+		var triangles := Geometry2D.triangulate_polygon(polygon)
+		if triangles.is_empty():
+			continue
+		var offset := vertices.size()
+		vertices.append_array(polygon)
+		for index in triangles:
+			indices.append(index + offset)
+	var mesh := ArrayMesh.new()
+	if not indices.is_empty():
+		var arrays := []
+		arrays.resize(Mesh.ARRAY_MAX)
+		arrays[Mesh.ARRAY_VERTEX] = vertices
+		arrays[Mesh.ARRAY_INDEX] = indices
+		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays, [], {}, Mesh.ARRAY_FLAG_USE_2D_VERTICES)
+	return mesh
+
+
 func _draw_decal_ellipse(center: Vector2, radius: Vector2, angle: float, color: Color, cache: Dictionary, key: String) -> void:
 	# Decals and static platforms do not move within a level. Clip once, then reuse
 	# the polygons; repeated geometry intersections made headless bot searches slow.
 	if not cache.has(key):
-		cache[key] = valid_decal_polygons(center, radius, angle)
-	for polygon in cache[key]:
-		draw_colored_polygon(polygon, color)
+		cache[key] = decal_mesh(center, radius, angle)
+	var mesh: ArrayMesh = cache[key]
+	if mesh.get_surface_count() > 0:
+		draw_mesh(mesh, null, Transform2D.IDENTITY, color)
 
 
 func _draw_decals() -> void:

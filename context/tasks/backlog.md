@@ -15,7 +15,7 @@ _(Mid-flight or top-priority. Usually 1–3 items.)_
 
 ## Next
 
-- [ ] Confirm crowded-scene smoothness on Android after decal/style caching and60FPS cap; user reported a brief glitch without a level. Capture `BR_PERF` alongside the level/shot if it recurs.
+- [ ] Confirm crowded-scene smoothness on Android after retained decal meshes, audio prewarming and60FPS cap; user reported a brief glitch and missile getting stuck without a level. Capture `BR_PERF` alongside the level/shot if it recurs.
 - [ ] Android release preparation: production package/version decision, release key/AAB, broader device/ABI tests and store assets. Debug APK is installed; no store release yet.
 
 - [ ] Investigate ObjectDB shutdown warnings in combined headless audio stress suites; dedicated audio suite shuts down cleanly; diagnostic found only polyphonic/WAV playback resources and zero orphaned nodes. Explicit voice-stop trials worsened shutdown and were reverted.
