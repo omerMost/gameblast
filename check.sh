@@ -8,6 +8,8 @@ SUITES_DEFAULT="smoke shooters selfharm sweep"
 [ -f godot/tests/suites.txt ] && SUITES_DEFAULT=$(grep -v '^#' godot/tests/suites.txt | tr '\n' ' ')
 SUITES=${*:-$SUITES_DEFAULT}
 mkdir -p .check-logs
+# Detect coordinate/ammo drift against executable prototype level declarations.
+node scripts/export-levels.js --check || exit 1
 command -v godot >/dev/null || { echo "check.sh: godot not on PATH"; exit 2; }
 # Refresh class/resource cache when a port introduces new scripts.
 perl -e 'alarm shift; exec @ARGV' 120 godot --headless --path godot --import > .check-logs/import.log 2>&1

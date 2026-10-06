@@ -33,6 +33,8 @@ static func shoot(g: Game, dx: float, dy: float, p: float, w: String) -> bool:
 ## Fire again as soon as the launcher is ready; hostile projectiles must not
 ## force the bot to idle while an active enemy attacks.
 static func shoot_active(g: Game, dx: float, dy: float, power: float, weapon: String) -> bool:
+	# Weapon selection is a real input and must precede readiness checks.
+	Debug.set_aim(dx, dy, power, weapon)
 	for tick in 600:
 		if g.can_fire() or g.state != "play": break
 		await Debug.step(1)

@@ -13,3 +13,5 @@ archer
 knight
 jet
 bosses
+lifecycle
+progression

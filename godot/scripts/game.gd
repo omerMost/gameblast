@@ -184,6 +184,15 @@ func later(steps: int, fn: Callable) -> void:
 	queue.append({"at": sim + steps, "fn": fn})
 
 
+## Resolve a weak body reference before invoking a typed delayed callback.
+## The target may have been removed and freed during the windup.
+func later_body(steps: int, body: GBody, fn: Callable, args := []) -> void:
+	var ref: WeakRef = weakref(body)
+	later(steps, func():
+		var target = ref.get_ref()
+		if in_world(target): fn.callv([target] + args))
+
+
 func alive_count() -> int:
 	var n := 0
 	for e in enemies:
@@ -369,12 +378,12 @@ func hit(A: GBody, B: Node) -> void:
 	if k == "rocket":
 		if not A.p.done:
 			A.p.done = true
-			later(0, _rocket_hit.bind(A))
+			later_body(0, A, _rocket_hit)
 		return
 	if k == "bullet" or k == "arrow":
 		if not A.p.done:
 			A.p.done = true
-			later(0, missile_hit.bind(A, B, false))
+			later_body(0, A, missile_hit, [B, false])
 		return
 	if settling:
 		return
@@ -396,7 +405,7 @@ func hit(A: GBody, B: Node) -> void:
 			deadly = rv * ratio > (9.0 if A.p.get("knight", false) else 6.5) and not (bk == "rag" and rv < 9) and bk != "enemy"
 		if deadly:
 			A.p.dying = true
-			later(0, kill.bind(A, _vel(B) * 0.4 / C.STEP, rv * ratio > 16))
+			later_body(0, A, kill, [_vel(B) * 0.4 / C.STEP, rv * ratio > 16])
 	if k == "player" and A.p.alive and sim > A.p.hit_cd and bk != "enemy":
 		var dmg := 0.0
 		if b_static:
@@ -421,7 +430,7 @@ func _rocket_hit(r: GBody) -> void:
 
 func trigger(b: GBody) -> void:
 	b.p.triggered = true
-	later(7, _barrel_go.bind(b))
+	later_body(7, b, _barrel_go)
 
 
 func _barrel_go(b: GBody) -> void:
@@ -619,7 +628,7 @@ func explode(p: Vector2, R: float, power: float, src, cause: String) -> void:
 				if dying:
 					continue
 		elif k == "balloon":
-			later(0, tricks.pop.bind(b))
+			later_body(0, b, tricks.pop)
 			continue
 		elif k == "barrel":
 			if not b.p.triggered and f > 0.1:

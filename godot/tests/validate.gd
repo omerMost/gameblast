@@ -57,7 +57,7 @@ func _ready() -> void:
 	check(not op_errors([["unknown", 1, 2, 3]]).is_empty(), "validator rejects unknown builder")
 	check(not op_errors([["block", 1, 2, -1, 4, "wood"]]).is_empty(), "validator rejects negative dimensions")
 	check(not op_errors([["balloon", 1, 2, "missing", [0, 0], 5]]).is_empty(), "validator rejects dangling body reference")
-	check(count >= 5, "missing stage-1 levels")
+	check(count == 40 and Levels.LEVELS.size() == 40, "all forty levels must be playable")
 	check(C.STEP == 60.0 and C.R_GREN == 125.0 and C.P_GREN == 30.0 and C.R_ROCK == 110.0 and C.P_ROCK == 32.0, "physics specification changed")
 	for failure in failures:
 		print("FAIL ", failure)

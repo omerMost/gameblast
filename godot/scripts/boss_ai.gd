@@ -67,7 +67,7 @@ func update_titan(e: GBody) -> void:
 			pl.swing_cd=game.sim+80
 			pl.swing=game.sim
 			game.sound_requested.emit("swing",1.0)
-			game.later(16,smash.bind(e,dir))
+			game.later_body(16,e,smash,[dir])
 		if grounded: e.linear_velocity.x *= 0.7
 		return
 	if not grounded: return
@@ -149,8 +149,8 @@ func contact_flame(fl: GBody, other: Node) -> void:
 	var kind := game._kind(other)
 	if kind=="player" or other is StaticBody2D or kind in ["block","boulder","barrel"]:
 		fl.p.done=true
-		game.later(0,flame_hit.bind(fl,other))
-func flame_hit(fl: GBody, other: Node) -> void:
+		game.later_body(0,fl,flame_hit,[other])
+func flame_hit(fl: GBody, other) -> void:
 	if not game.in_world(fl): return
 	var p := fl.global_position
 	var v := fl.linear_velocity/C.STEP
@@ -174,7 +174,7 @@ func update_missiles_and_gulp() -> void:
 				e.p.breath="gulp"; e.p.mouth_open=false; e.p.gulp=game.sim
 				label(mouth+Vector2(0,-40),"GULP!",Color.WHITE)
 				game.sound_requested.emit("gulp",1.0)
-				game.later(40,kill_boss.bind(e))
+				game.later_body(40,e,kill_boss)
 				Debug.log_event("gulp",{"sim":game.sim})
 				break
 

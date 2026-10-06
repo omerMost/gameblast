@@ -84,9 +84,9 @@ func contact(a: GBody, b: Node) -> void:
 		var offset: Vector2 = a.global_position - b.global_position
 		var normal := Vector2(signf(offset.x), 0) if absf(offset.x / b.size.x) > absf(offset.y / b.size.y) else Vector2(0, signf(offset.y))
 		if a.prev_v.dot(normal) < 0:
-			game.later(0, _bounce.bind(a, normal, -a.prev_v.dot(normal)))
+			game.later_body(0, a, _bounce, [normal, -a.prev_v.dot(normal)])
 	if a.kind == "balloon" and not game.settling and ((a.prev_v - game._vel(b)).length() / C.STEP > 3 or game._kind(b) in ["grenade", "bullet", "arrow", "nade", "rocket"]):
-		game.later(0, pop.bind(a))
+		game.later_body(0, a, pop)
 
 func _bounce(b: GBody, normal: Vector2, speed: float) -> void:
 	if game.in_world(b):

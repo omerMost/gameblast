@@ -36,3 +36,11 @@ Stage-2 specifics (ADR 0007): sparse level slots stay null until ported; always 
 ## Boss and jet source details
 
 Keep original numbered intro levels25/31/33 and original ammo/par. Jet pack blast is14ticks after death (radius80,power20); grenade warning ring follows current position. Titan/dragon compound inertia multipliers are10/6. Flames are sensors (0.15gravity), so they damage via deferred contact without shoving solids. The dragon hint says grenade-only, but executable explode also accepts any blast within32px of its open mouth; preserve that exception.
+
+## Stage3 content and verification
+
+All40 definitions are generated from prototype declarations: run `node scripts/export-levels.js`, and `--check` to reject drift. Do not hand-edit generated coordinates/ammo/par. Original1-based keys in `stage3_early/mixed/monsters.gd` SHOTS feed bot.gd; optional fourth shot field is a real wait in ticks. ContentSearch runs only real launcher inputs and original ammo. Regenerate diagnostics with `content_search.tscn -- --level=N`; stored proof scenes remain available separately. Select the requested weapon before polling can_fire.
+
+Use `later_body` for a typed delayed callback whose body may die during its windup; normal later remains for coordinate-only callbacks. Idle stability excludes bullets/arrows/nades/flames from scenery motion. Knights/hovering bosses/mobile bridges remain bounded; L29/33/35/39 source-alerted attacks produce explicit expected HP78/90/73/84 at300ticks. Player and all enemies must survive with named causes and finite transforms.
+
+On macOS, screenshot diagnostics awaiting RenderingServer.frame_post_draw can stall while the Godot window is occluded even though physics continues. Keep the diagnostic window visible (`--always-on-top`, activate Godot) and use a watchdog; do not interpret an occluded screenshot wait as a game freeze. Fully visible L40 aim/post-shot rendering completed cleanly in7.1s.

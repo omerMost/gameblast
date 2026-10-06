@@ -1,70 +1,46 @@
 class_name Levels
 extends RefCounted
-## LEVELS[] from prototype/index.html, as data. Same order, same numbers.
-## `build` is a list of builder ops replayed by LevelBuilder:
-##   ["ground", x1, x2, top]            ["plat", x1, x2, top, th?]
-##   ["wall", x1, y1, x2, y2]           ["pad", x1, y1, x2, y2]
-##   ["slope", x1, y1, x2, y2, th?]     ["block", cx, bottom, w, h, mat]
-##   ["enemy", x, bottom, {opts}]       ["boulder", cx, bottom, r]
-##   ["barrel", cx, bottom]
-## Stage 1 ports levels 1-5. Stage 3 adds the rest.
-
-const SH := {"shooter": true}
-
+## Generated from prototype/index.html by node scripts/export-levels.js.
+## Original order, coordinates, ammo, par and behavior options.
 const LEVELS := [
-	{"name": "Warm-up", "view": [0, 300, 820, 420], "ammo": {"grenade": 3}, "par": 1,
-		"hint": "Drag back, aim, let go",
-		"build": [
-			["ground", 0, 190, 560], ["ground", 190, 900, 650],
-			["block", 430, 650, 30, 70, "wood"], ["block", 430, 580, 30, 70, "wood"],
-			["enemy", 560, 650], ["enemy", 650, 650],
-		]},
-	{"name": "Two floors", "view": [0, 260, 820, 460], "ammo": {"grenade": 2, "rocket": 1}, "par": 2,
-		"build": [
-			["ground", 0, 190, 560], ["ground", 190, 900, 650],
-			["block", 490, 650, 22, 100, "wood"], ["block", 630, 650, 22, 100, "wood"], ["block", 560, 550, 180, 18, "wood"],
-			["block", 505, 532, 20, 90, "wood"], ["block", 615, 532, 20, 90, "wood"], ["block", 560, 442, 150, 16, "wood"],
-			["enemy", 560, 650], ["enemy", 560, 532], ["enemy", 560, 426],
-		]},
-	{"name": "Rolling stone", "view": [0, 280, 840, 440], "ammo": {"rocket": 2, "grenade": 1}, "par": 2,
-		"build": [
-			["ground", 0, 190, 560], ["ground", 190, 900, 650], ["ground", 380, 560, 470],
-			["block", 420, 470, 18, 18, "wood"], ["block", 460, 470, 18, 18, "wood"], ["boulder", 440, 452, 38],
-			["enemy", 530, 470], ["enemy", 620, 650], ["enemy", 690, 650], ["enemy", 760, 650],
-		]},
-	{"name": "Hot stuff", "view": [0, 300, 880, 420], "ammo": {"grenade": 2}, "par": 1,
-		"build": [
-			["ground", 0, 190, 560], ["ground", 190, 940, 650], ["ground", 380, 410, 480],
-			["barrel", 520, 650], ["enemy", 575, 650], ["barrel", 630, 650], ["enemy", 685, 650], ["enemy", 745, 650], ["barrel", 800, 650],
-		]},
-	{"name": "Portal", "view": [0, 300, 880, 420], "ammo": {"grenade": 2, "rocket": 1}, "par": 1,
-		"hint": "Shoot into the green portal",
-		"portals": [{"a": [300, 420], "b": [560, 520]}],
-		"build": [
-			["ground", 0, 190, 560], ["ground", 190, 900, 650],
-			["wall", 420, 410, 450, 650], ["wall", 800, 410, 830, 650], ["wall", 420, 410, 830, 450],
-			["enemy", 650, 650], ["enemy", 720, 650], ["barrel", 775, 650],
-		]},
-	null, null, null, null, null, null, null, null, null, null, null, null, null,
-	ArcherLevel.DATA, KnightLevel.DATA,
-	{"name": "Hanging stone", "view": [0,240,920,480], "ammo": {"rocket":2,"grenade":2}, "par":1, "hint":"Shoot the rope", "build":[
-		["ground",0,190,560], ["ground",190,980,650], ["wall",820,300,840,650], ["wall",560,300,840,318],
-		["boulder",630,470,34,"stone"], ["hang",[630,318],"stone",[0,-34]],
-		["enemy",600,650], ["enemy",665,650], ["enemy",760,300,SH]]},
-	{"name":"Sky raft", "theme":"sky", "view":[0,190,940,530], "ammo":{"grenade":2,"rocket":3}, "par":3, "hint":"Pop the balloons or cut the ropes", "build":[
-		["ground",0,180,560], ["block",600,440,240,18,"wood","raft"], ["enemy",560,422], ["enemy",645,422],
-		["balloon",510,300,"raft",[-100,-9],5.6], ["balloon",600,285,"raft",[0,-9],5.6], ["balloon",690,300,"raft",[100,-9],5.6],
-		["plat",470,530,640,26], ["plat",670,730,640,26], ["tether",[500,640],"raft",[-110,9]], ["tether",[700,640],"raft",[110,9]],
-		["plat",780,900,560], ["enemy",840,560,SH]]},
-	{"name":"Bounce house", "view":[0,280,960,440], "ammo":{"grenade":3}, "par":2, "hint":"Bouncy walls send shots back", "build":[
-		["ground",0,190,560], ["ground",190,1000,650], ["wall",470,330,490,650], ["wall",490,500,800,520], ["pad",890,380,912,650],
-		["enemy",560,650], ["enemy",640,650], ["enemy",720,650]]},
-	{"name":"Black hole", "theme":"sky", "view":[0,170,940,530], "ammo":{"grenade":3,"rocket":2}, "par":2, "hint":"The black hole bends your shots", "wells":[[450,360,0.2]], "build":[
-		["ground",0,180,560], ["plat",680,900,560,30], ["wall",680,330,700,560], ["enemy",760,560], ["enemy",830,560],
-		["plat",360,520,650,30], ["enemy",420,650,SH]]},
-	JetLevel.DATA,
-	null, null, null, null, null,
-	{"name":"Titan", "view":[0,190,1000,510], "ammo":{"rocket":4,"grenade":2}, "par":1, "alert_at":60, "hint":"Titans only fall to a hit on the glowing belly", "build":[["ground",0,190,560],["ground",190,1040,650],["barrel",520,650],["enemy",880,650,{"titan":true}]]},
-	null,
-	{"name":"Dragon", "view":[0,170,960,520], "ammo":{"grenade":5}, "par":1, "alert_at":90, "hint":"Lob a grenade into its mouth when it opens", "build":[["ground",0,190,560],["ground",190,1000,650],["enemy",740,330,{"dragon":true}]]},
+	{"name":"Warm-up","view":[0,300,820,420],"ammo":{"grenade":3},"par":1,"hint":"Drag back, aim, let go","build":[["ground",0,190,560],["ground",190,900,650],["block",430,650,30,70,"wood"],["block",430,580,30,70,"wood"],["enemy",560,650],["enemy",650,650]]},
+	{"name":"Two floors","view":[0,260,820,460],"ammo":{"grenade":2,"rocket":1},"par":2,"build":[["ground",0,190,560],["ground",190,900,650],["block",490,650,22,100,"wood"],["block",630,650,22,100,"wood"],["block",560,550,180,18,"wood"],["block",505,532,20,90,"wood"],["block",615,532,20,90,"wood"],["block",560,442,150,16,"wood"],["enemy",560,650],["enemy",560,532],["enemy",560,426]]},
+	{"name":"Rolling stone","view":[0,280,840,440],"ammo":{"rocket":2,"grenade":1},"par":2,"build":[["ground",0,190,560],["ground",190,900,650],["ground",380,560,470],["block",420,470,18,18,"wood"],["block",460,470,18,18,"wood"],["boulder",440,452,38],["enemy",530,470],["enemy",620,650],["enemy",690,650],["enemy",760,650]]},
+	{"name":"Hot stuff","view":[0,300,880,420],"ammo":{"grenade":2},"par":1,"build":[["ground",0,190,560],["ground",190,940,650],["ground",380,410,480],["barrel",520,650],["enemy",575,650],["barrel",630,650],["enemy",685,650],["enemy",745,650],["barrel",800,650]]},
+	{"name":"Portal","view":[0,300,880,420],"ammo":{"grenade":2,"rocket":1},"par":1,"hint":"Shoot into the green portal","portals":[{"a":[300,420],"b":[560,520]}],"build":[["ground",0,190,560],["ground",190,900,650],["wall",420,410,450,650],["wall",800,410,830,650],["wall",420,410,830,450],["enemy",650,650],["enemy",720,650],["barrel",775,650]]},
+	{"name":"The tall T","theme":"sky","view":[0,260,880,460],"ammo":{"rocket":2,"grenade":2},"par":2,"build":[["ground",0,180,560],["ground",330,900,650],["block",470,650,50,240,"sand"],["block",470,410,260,26,"sand"],["block",440,384,16,16,"wood"],["block",480,384,16,16,"wood"],["boulder",460,368,34],["enemy",565,384],["enemy",780,650]]},
+	{"name":"Balance","theme":"sky","view":[0,300,920,420],"ammo":{"grenade":1,"rocket":2},"par":1,"build":[["ground",0,180,560],["ground",470,530,580],["block",500,580,340,18,"wood"],["enemy",370,562],["enemy",630,562],["ground",750,920,610],["enemy",830,610]]},
+	{"name":"Return fire","view":[0,300,860,420],"ammo":{"grenade":3,"rocket":2},"par":2,"hint":"They shoot back. Be quick!","build":[["ground",0,190,560],["ground",190,900,650],["block",560,650,26,40,"wood"],["block",680,650,26,40,"wood"],["enemy",610,650,{"shooter":true}],["enemy",730,650,{"shooter":true}],["enemy",800,650]]},
+	{"name":"Bunker","view":[0,300,840,420],"ammo":{"rocket":2,"grenade":2},"par":2,"build":[["ground",0,190,560],["ground",190,900,650],["block",480,650,24,110,"stone"],["block",640,650,24,110,"stone"],["block",560,540,210,20,"wood"],["enemy",530,650],["enemy",590,650],["enemy",560,520,{"shooter":true}],["barrel",720,650]]},
+	{"name":"Wormhole","theme":"sky","view":[0,240,900,480],"ammo":{"grenade":3,"rocket":1},"par":2,"portals":[{"a":[290,630],"b":[720,300]}],"build":[["ground",0,180,560],["plat",390,500,610],["enemy",445,610,{"shooter":true}],["plat",600,880,520,30],["wall",600,330,624,520],["enemy",690,520],["enemy",760,520],["enemy",830,520]]},
+	{"name":"Dominoes","view":[0,300,940,420],"ammo":{"rocket":1,"grenade":1},"par":1,"build":[["ground",0,190,560],["ground",190,980,650],["block",360,650,16,130,"wood"],["block",430,650,16,130,"wood"],["block",500,650,16,130,"wood"],["block",570,650,16,130,"wood"],["block",640,650,16,130,"wood"],["enemy",705,650],["enemy",760,650],["barrel",815,650],["enemy",870,650]]},
+	{"name":"Cloud islands","theme":"sky","view":[0,280,900,440],"ammo":{"grenade":3,"rocket":2},"par":3,"build":[["ground",0,170,560],["plat",290,430,520],["enemy",320,520],["block",365,520,20,70,"wood"],["enemy",400,520],["plat",520,700,440],["boulder",560,440,30],["block",600,440,16,16,"wood"],["enemy",650,440],["enemy",684,440],["plat",740,880,600],["enemy",800,600,{"shooter":true}],["block",850,600,20,50,"ice"]]},
+	{"name":"Moving portal","view":[0,270,900,450],"ammo":{"grenade":3,"rocket":2},"par":2,"portals":[{"a":[320,420],"b":[600,520],"move":{"end":"a","amp":80,"spd":1.6}}],"build":[["ground",0,190,560],["ground",190,940,650],["wall",470,400,500,650],["wall",820,400,850,650],["wall",470,400,850,440],["enemy",700,650],["barrel",740,650],["enemy",780,650],["enemy",540,400,{"shooter":true}]]},
+	{"name":"Downhill","view":[0,290,940,430],"ammo":{"rocket":1,"grenade":2},"par":1,"build":[["ground",0,190,560],["ground",190,980,650],["ground",380,470,430],["slope",470,430,700,650,40],["boulder",430,430,32],["enemy",300,650],["enemy",760,650],["enemy",820,650],["enemy",880,650]]},
+	{"name":"Ice palace","view":[0,280,840,440],"ammo":{"grenade":2,"rocket":1},"par":2,"build":[["ground",0,190,560],["ground",190,900,650],["block",500,650,24,90,"ice"],["block",620,650,24,90,"ice"],["block",560,560,170,18,"ice"],["block",510,542,20,80,"ice"],["block",610,542,20,80,"ice"],["block",560,462,140,16,"ice"],["boulder",560,446,26],["enemy",560,650],["enemy",560,542],["block",690,650,20,60,"ice"],["enemy",750,650]]},
+	{"name":"Double portal","theme":"sky","view":[0,130,900,570],"ammo":{"rocket":2,"grenade":1},"par":2,"portals":[{"a":[300,505],"b":[440,190]},{"a":[620,190],"b":[690,585]}],"build":[["ground",0,180,560],["plat",620,880,640,40],["wall",620,420,645,640],["wall",855,420,880,640],["wall",620,400,880,420],["enemy",760,640],["enemy",820,640],["enemy",750,400,{"shooter":true}]]},
+	{"name":"Sniper nest","view":[0,240,940,480],"ammo":{"grenade":3,"rocket":2},"par":3,"portals":[{"a":[380,330],"b":[745,575]}],"build":[["ground",0,190,560],["ground",190,1000,650],["ground",560,700,380],["enemy",610,380,{"shooter":true}],["enemy",660,380,{"shooter":true}],["plat",700,940,480,30],["enemy",810,650],["enemy",870,650]]},
+	{"name":"Fortress","view":[0,260,980,460],"ammo":{"grenade":3,"rocket":3},"par":4,"build":[["ground",0,190,560],["ground",190,1000,650],["barrel",465,650],["block",520,650,26,120,"stone"],["block",640,650,22,120,"wood"],["block",760,650,26,120,"stone"],["enemy",580,650],["enemy",700,650],["block",640,530,280,20,"wood"],["block",540,510,22,100,"wood"],["block",740,510,22,100,"wood"],["enemy",600,510],["enemy",680,510],["block",640,410,240,18,"sand"],["boulder",640,392,30],["enemy",720,392,{"shooter":true}],["barrel",830,650],["enemy",885,650,{"shooter":true}]]},
+	{"name":"Archers","view":[0,240,960,480],"ammo":{"grenade":3,"rocket":2},"par":3,"hint":"Archers lob arrows over cover","build":[["ground",0,190,560],["ground",190,1000,650],["ground",700,1000,540],["block",722,540,16,60,"wood"],["enemy",780,540,{"archer":true}],["enemy",860,540,{"archer":true}],["enemy",600,650]]},
+	{"name":"Knights","view":[0,270,980,450],"ammo":{"grenade":4,"rocket":2},"par":2,"hint":"Shields block blasts from the front. Lob over them!","build":[["ground",0,190,560],["ground",190,1000,650],["barrel",430,650],["block",600,650,16,50,"wood"],["enemy",820,650,{"knight":true}],["enemy",900,650,{"knight":true}]],"alert_at":90},
+	{"name":"Hanging stone","view":[0,240,920,480],"ammo":{"rocket":2,"grenade":2},"par":1,"hint":"Shoot the rope","build":[["ground",0,190,560],["ground",190,980,650],["wall",820,300,840,650],["wall",560,300,840,318],["boulder",630,470,34,"body5_4"],["hang",[630,318],"body5_4",[0,-34]],["enemy",600,650],["enemy",665,650],["enemy",760,300,{"shooter":true}]]},
+	{"name":"Sky raft","theme":"sky","view":[0,190,940,530],"ammo":{"grenade":2,"rocket":3},"par":3,"hint":"Pop the balloons or cut the ropes","build":[["ground",0,180,560],["block",600,440,240,18,"wood","body4_1"],["enemy",560,422],["enemy",645,422],["balloon",510,300,"body4_1",[-100,-9],5.6],["balloon",600,285,"body4_1",[0,-9],5.6],["balloon",690,300,"body4_1",[100,-9],5.6],["plat",470,530,640,26],["plat",670,730,640,26],["tether",[500,640],"body4_1",[-110,9]],["tether",[700,640],"body4_1",[110,9]],["plat",780,900,560],["enemy",840,560,{"shooter":true}]]},
+	{"name":"Bounce house","view":[0,280,960,440],"ammo":{"grenade":3},"par":2,"hint":"Bouncy walls send shots back","build":[["ground",0,190,560],["ground",190,1000,650],["wall",470,330,490,650],["wall",490,500,800,520],["pad",890,380,912,650],["enemy",560,650],["enemy",640,650],["enemy",720,650]]},
+	{"name":"Black hole","theme":"sky","view":[0,170,940,530],"ammo":{"grenade":3,"rocket":2},"par":2,"hint":"The black hole bends your shots","wells":[[450,360,0.2]],"build":[["ground",0,180,560],["plat",680,900,560,30],["wall",680,330,700,560],["enemy",760,560],["enemy",830,560],["plat",360,520,650,30],["enemy",420,650,{"shooter":true}]]},
+	{"name":"Jetpacks","view":[0,200,960,500],"ammo":{"grenade":3,"rocket":3},"par":3,"hint":"Jetpack troopers throw grenades","build":[["ground",0,190,560],["ground",190,1000,650],["enemy",620,380,{"jet":true}],["enemy",790,320,{"jet":true}],["enemy",720,650],["barrel",765,650]]},
+	{"name":"Siege","view":[0,230,1000,490],"ammo":{"grenade":4,"rocket":3},"par":4,"build":[["ground",0,190,560],["ground",190,1040,650],["ground",760,1040,480],["block",782,480,14,40,"stone"],["enemy",830,480,{"archer":true}],["enemy",910,480,{"archer":true}],["enemy",640,650,{"knight":true}],["enemy",700,650,{"knight":true}],["barrel",560,650]],"alert_at":150},
+	{"name":"Event horizon","theme":"sky","view":[0,130,940,570],"ammo":{"grenade":3,"rocket":2},"par":2,"portals":[{"a":[300,470],"b":[430,170]}],"wells":[[700,300,0.18]],"build":[["ground",0,180,560],["plat",640,920,640,30],["wall",640,380,660,640],["enemy",720,640],["enemy",800,640],["enemy",880,640,{"shooter":true}]]},
+	{"name":"Floating fort","theme":"sky","view":[0,180,960,560],"ammo":{"grenade":3,"rocket":3},"par":3,"build":[["ground",0,180,560],["block",600,460,300,20,"wood","body7_1"],["block",462,440,16,60,"wood"],["block",738,440,16,60,"wood"],["enemy",530,440],["enemy",600,440],["enemy",670,440],["balloon",480,300,"body7_1",[-130,-10],6.4],["balloon",560,300,"body7_1",[-45,-10],6.4],["balloon",640,300,"body7_1",[45,-10],6.4],["balloon",720,300,"body7_1",[130,-10],6.4],["plat",400,460,700,24],["plat",740,800,700,24],["tether",[430,700],"body7_1",[-140,10]],["tether",[770,700],"body7_1",[140,10]],["enemy",860,330,{"jet":true}]]},
+	{"name":"Rope bridge","theme":"sky","view":[0,250,980,470],"ammo":{"grenade":3,"rocket":2},"par":2,"hint":"Knights are coming over the bridge","build":[["ground",0,190,560],["bridge",190,560,700,560,10],["ground",700,1000,560],["enemy",780,560,{"knight":true}],["enemy",850,560,{"knight":true}],["enemy",930,560,{"archer":true}]],"alert_at":60},
+	{"name":"Final stand","view":[0,170,1100,560],"ammo":{"grenade":5,"rocket":4},"par":6,"build":[["ground",0,190,560],["ground",190,1140,650],["ground",820,1140,480],["wall",800,276,816,480],["wall",600,260,816,276],["boulder",660,470,32,"body6_5"],["hang",[660,276],"body6_5",[0,-32]],["enemy",870,480,{"archer":true}],["enemy",950,480,{"archer":true}],["enemy",1030,480,{"shooter":true}],["enemy",660,650,{"knight":true}],["enemy",730,650,{"knight":true}],["enemy",520,330,{"jet":true}],["barrel",460,650],["barrel",770,650]],"alert_at":150},
+	{"name":"Titan","view":[0,190,1000,510],"ammo":{"rocket":4,"grenade":2},"par":1,"hint":"Titans only fall to a hit on the glowing belly","build":[["ground",0,190,560],["ground",190,1040,650],["barrel",520,650],["enemy",880,650,{"titan":true}]],"alert_at":60},
+	{"name":"Titan crossing","theme":"sky","view":[0,190,1060,520],"ammo":{"rocket":3,"grenade":2},"par":1,"hint":"Belly shot, or drop it off the bridge","build":[["ground",0,190,560],["bridge",190,560,720,560,12],["ground",720,1100,560],["enemy",900,560,{"titan":true}]],"alert_at":60},
+	{"name":"Dragon","view":[0,170,960,520],"ammo":{"grenade":5},"par":1,"hint":"Lob a grenade into its mouth when it opens","build":[["ground",0,190,560],["ground",190,1000,650],["enemy",740,330,{"dragon":true}]],"alert_at":90},
+	{"name":"Two titans","view":[0,180,1100,530],"ammo":{"rocket":5,"grenade":2},"par":2,"build":[["ground",0,190,560],["ground",190,1140,650],["block",600,650,30,60,"stone"],["barrel",660,650],["enemy",860,650,{"titan":true}],["enemy",1000,650,{"titan":true}]],"alert_at":60},
+	{"name":"Dragon tower","view":[0,160,1060,540],"ammo":{"grenade":5,"rocket":2},"par":4,"build":[["ground",0,190,560],["ground",190,1100,650],["ground",720,1100,500],["block",742,500,14,40,"stone"],["enemy",800,500,{"archer":true}],["enemy",880,500,{"archer":true}],["enemy",620,300,{"dragon":true}]],"alert_at":120},
+	{"name":"Twin dragons","theme":"sky","view":[0,140,1000,560],"ammo":{"grenade":6},"par":2,"build":[["ground",0,190,560],["enemy",620,280,{"dragon":true}],["enemy",830,420,{"dragon":true}]],"alert_at":90},
+	{"name":"Dragon portal","view":[0,150,1000,540],"ammo":{"grenade":5},"par":1,"hint":"The portal puts you right in its face","portals":[{"a":[330,380],"b":[640,300]}],"build":[["ground",0,190,560],["ground",190,1040,650],["wall",560,180,590,650],["enemy",820,360,{"dragon":true}]],"alert_at":90},
+	{"name":"Titan escort","view":[0,170,1100,540],"ammo":{"rocket":4,"grenade":4},"par":4,"build":[["ground",0,190,560],["ground",190,1140,650],["wall",600,250,820,266],["boulder",690,460,30,"body4_3"],["hang",[690,266],"body4_3",[0,-30]],["enemy",700,650,{"knight":true}],["enemy",760,650,{"knight":true}],["enemy",980,650,{"titan":true}]],"alert_at":120},
+	{"name":"Gravity dragon","theme":"sky","view":[0,130,1000,570],"ammo":{"grenade":6},"par":2,"hint":"Use the black hole to curve into its mouth","wells":[[440,300,0.16]],"build":[["ground",0,190,560],["plat",560,760,640,30],["enemy",640,640,{"shooter":true}],["enemy",820,330,{"dragon":true}]],"alert_at":120},
+	{"name":"Monster mash","view":[0,130,1160,590],"ammo":{"rocket":5,"grenade":6},"par":6,"build":[["ground",0,190,560],["ground",190,1200,650],["ground",980,1200,480],["enemy",1040,480,{"archer":true}],["enemy",1120,480,{"shooter":true}],["barrel",560,650],["enemy",900,650,{"titan":true}],["enemy",700,280,{"dragon":true}]],"alert_at":150}
 ]

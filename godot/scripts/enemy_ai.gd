@@ -64,7 +64,7 @@ func update_archer(e: GBody, alert: bool, target: Vector2) -> void:
 		return
 	pl.lob = sol.a
 	pl.draw = game.sim
-	game.later(18, release_arrow.bind(e, sol))
+	game.later_body(18, e, release_arrow, [sol])
 
 func release_arrow(e: GBody, sol: Dictionary) -> void:
 	if not game.in_world(e) or not e.p.alive or game.state != "play":
@@ -140,7 +140,7 @@ func update_knight(e: GBody) -> void:
 			pl.swing_cd = game.sim + 55
 			pl.swing = game.sim
 			game.sound_requested.emit("swing", 1.0)
-			game.later(9, sword_hit.bind(e, dir))
+			game.later_body(9, e, sword_hit, [dir])
 		if grounded: e.linear_velocity.x *= 0.7
 		return
 	if not grounded: return
@@ -208,7 +208,7 @@ func update_jet(e: GBody, alert: bool, target: Vector2) -> void:
 	if sol.is_empty(): return
 	pl.lob=sol.a
 	pl.toss=game.sim
-	game.later(10,release_nade.bind(e,sol))
+	game.later_body(10,e,release_nade,[sol])
 
 func release_nade(e: GBody, sol: Dictionary) -> void:
 	if not game.in_world(e) or not e.p.alive or game.state!="play": return

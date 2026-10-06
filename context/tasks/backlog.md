@@ -4,6 +4,7 @@ Active, actionable work. One bullet = one chunk you could pick up and finish in 
 
 ## Now
 
+
 _(Mid-flight or top-priority. Usually 1–3 items.)_
 
 - [ ] Android toolchain for stage 4: a separate session in the Moo Rush project is installing it machine-wide (Android cmdline-tools in; JDK 17 not yet as of 2026-10-07). Still needed for Blast Ranger: check it covers the Godot 4.7.2 export templates, NDK, debug keystore and editor SDK/JDK paths, then record the versions in `tech-stack.md`. Godot 4.7.2 itself is installed
@@ -19,11 +20,11 @@ _(Mid-flight or top-priority. Usually 1–3 items.)_
 
 _(Approved, ready to pick up, not started yet.)_
 
-- [ ] Review `context/morning-page-2026-10-07.md` and authorize merging completed stage2 from `run/godot-stage-2`; main still stage1.
+- [ ] Review stage2 morning page and stage3 completion (`codex/stage3-content`, all40 levels, 15 suites green) before merging their unmerged ancestry; main still stage1.
 - [ ] Audition procedural PCM music/SFX through speakers and compare rope/hover/armor feel with Matter; automated verification is complete, perceptual parity provisional.
 
 - [ ] Extend `check.sh` to the web prototype through `window.__dbg`; Godot registered suites, content validator and real-input bot are implemented.
-- [ ] Godot port stage 3 (all 40 levels), stage 4 (Android `.apk` export)
+- [ ] Godot port stage4 (Android `.apk` export)
 - [ ] Godot port feel gaps (ADR 0006): debris kills enemies less often than in the prototype (level 2 flat rocket), and grenade corner bounces and spin grip differ. Re-run `godot/tests/grid.gd` against the prototype after each tuning pass
 - [ ] Godot port polish: the 30-tick settle at level start is visible (input locked for 0.5 s); hide it behind a level-name banner
 - [ ] Decide what to do with the unused Expo scaffold in `mobile/` (delete it, or keep it for a companion app)

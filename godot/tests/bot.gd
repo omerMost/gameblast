@@ -20,6 +20,13 @@ const SOLUTIONS := {
 func _ready() -> void:
 	await TestUtil.boot(self)
 	var g: Game = Debug.game
+	var solutions: Dictionary = SOLUTIONS.duplicate()
+	var new_indices := []
+	for path in ["res://tests/stage3_early.gd","res://tests/stage3_mixed.gd","res://tests/stage3_monsters.gd"]:
+		var fixture = load(path)
+		for number in fixture.SHOTS:
+			solutions[int(number)-1] = fixture.SHOTS[number]
+			new_indices.append(int(number)-1)
 	var failures := []
 	var cleared := 0
 	var only := -1
@@ -29,14 +36,15 @@ func _ready() -> void:
 		if only >= 0 and only != i: continue
 		if Levels.LEVELS[i] == null:
 			continue
-		if not SOLUTIONS.has(i):
+		if not solutions.has(i):
 			failures.append("L%d has no bot solution" % (i + 1))
 			continue
 		await Debug.start_level(i)
 		var fired := true
-		for shot in SOLUTIONS[i]:
+		for shot in solutions[i]:
 			if g.state != "play":
 				break
+			if shot.size()>3: await Debug.step(int(shot[3]))
 			var angle := deg_to_rad(float(shot[0]))
 			if i < 5:
 				fired = await TestUtil.shoot(g, cos(angle), -sin(angle), shot[1], shot[2]) and fired
@@ -51,12 +59,12 @@ func _ready() -> void:
 		if not ok:
 			# ADR 0006: chaotic physics can vary with simulation history. Search a
 			# replacement using the same real inputs/ammo, never change the world.
-			var search = load("res://tests/knight.gd" if i == 19 else ("res://tests/jet.gd" if i == 24 else "res://tests/sweep.gd")).new()
+			var search = load("res://tests/knight.gd" if i == 19 else ("res://tests/jet.gd" if i == 24 else ("res://tests/content_search.gd" if i in new_indices else "res://tests/sweep.gd"))).new()
 			search.g = g
 			var replacement: Dictionary = await search.solve(true) if i in [19,24] else await search.solve(i)
 			print("BOT replacement level %d %s" % [i + 1, replacement])
 			ok = replacement.win and g.player.p.alive
-			for death in TestUtil.deaths() if i in [19,24] else search.death_log:
+			for death in TestUtil.deaths() if i in [19,24] or i in new_indices else search.death_log:
 				if not C.CAUSES.has(death.cause): ok = false
 			search.free()
 		print("BOT level %d %s %s shots=%d par=%d" % [i + 1, g.L.name, "WIN" if ok else "FAIL", g.shots, g.L.par])

@@ -9,7 +9,7 @@ Seed this file during install (don't leave blank) — stack choices are usually 
 
 One section per layer. For each choice: what we picked + one-line rationale. Resist writing prose — this is a lookup table, not an essay.
 
-> Status 2026-10-07: the prototype is still the spec. The Godot port has reached stage 1 (core loop, levels 1–5), verified headlessly. Android toolchain is not installed yet.
+> Status 2026-10-07: the prototype is still the spec. The Godot port has stage2 verified on its run branch; stage3 adds all40 original levels and bot proofs on `codex/stage3-content`. Android toolchain is not installed yet.
 
 ## Runtime / language
 
@@ -50,3 +50,8 @@ _(Things that were on the table and lost. Each entry: what it was, why it lost. 
 - Tests refresh Godot imports before running and reject general engine ERROR lines as well as script failures. Physics bots skip repeated canvas redraws; screenshot scenes opt in. Scene teardown gives the async audio mixer 60 ms to release voices. Stored real-input shots use passive settling on levels 1–5 and active firing on hostile levels; a bounded ammo/angle sweep can replace a chaotic replay (ADR 0006).
 
 - Stage2 registers quantitative knight/jet/boss suites and fourteen original-numbered levels. Flame missiles use RigidBody2D movement plus Area2D sensors; no extra dependencies or installs.
+
+## Stage3 content tooling
+
+- Node (already installed for repo scripts) runs dependency-free `scripts/export-levels.js` against only prototype level declarations, recording builder calls and expanding loops/references. Generated GDScript stays the native runtime data; `check.sh` requires `--check` fidelity. No installs or new packages.
+- Registered lifecycle/progression regressions cover freed pending enemy callbacks, exhausted-weapon switching, all40 save unlocks and the level grid; idle checks exclude transient missiles and expect source-alerted damage/movement.
