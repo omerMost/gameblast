@@ -35,6 +35,7 @@ func _ready() -> void:
 	add_child(hud)
 	game.hud_changed.connect(hud.refresh)
 	game.show_result.connect(hud.show_result)
+	game.player_hurt.connect(hud.hurt)
 
 	game.start_level(0)
 	hud.show_title()

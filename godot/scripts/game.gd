@@ -12,6 +12,7 @@ extends Node2D
 signal hud_changed
 signal ended(won: bool)          # the moment the level is decided
 signal show_result               # after the slow-mo delay (UI shows the card)
+signal player_hurt(dmg: int)      # prototype: hpChip 'shake' + sfx('hurt') + musicDuck()
 
 const SETTLE_TICKS := 30
 
@@ -481,6 +482,7 @@ func damage_player(dmg: float, dir: Vector2, at, cause: String) -> void:
 	blood_burst(T.x, T.y, dir.x / dl, dir.y / dl, 6 + d / 3, 1.0, char_colors(player))
 	particles.append({"t": "text", "x": T.x, "y": T.y - 40, "vx": frnd(-20, 20), "vy": -90.0, "life": 0.0, "max": 0.9, "text": "-%d" % d, "c": Color("#ff3b4e")})
 	Debug.log_event("damage", {"dmg": d, "cause": cause, "hp": player.p.hp})
+	player_hurt.emit(d)
 	if player.p.hp <= 0:
 		kill_player(dir / dl * 6, d > 45)
 	hud_changed.emit()
@@ -604,8 +606,9 @@ func missile_hit(ms: GBody, B, shield: bool) -> void:
 	if not is_instance_valid(B):
 		return
 	var k := _kind(B)
+	var is_arrow := ms.kind == "arrow"   # arrows (stage 2 archers) share this path: 22 dmg, cause "arrow"
 	if k == "player" and B.p.alive:
-		damage_player(16, dir * 3, p, "bullet")
+		damage_player(22 if is_arrow else 16, dir * 3, p, "arrow" if is_arrow else "bullet")
 		if in_world(B):
 			B.apply_impulse(dir * 0.004 * C.FORCE_IMPULSE, p - B.global_position)
 		return

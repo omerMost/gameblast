@@ -23,6 +23,12 @@ var lvl_lbl: Label
 var foes_lbl: Label
 var hp_bar: ColorRect
 var hp_back: Control
+var hp_inner: Control          # shaken on damage (prototype .hp.shake: 0.3 s, -4px at 25%, +4px at 75%)
+var hp_shake_t := -1.0         # seconds into the shake, -1 = idle
+var hp_base_x := 0.0
+var hp_shakes := 0             # how many times the chip shook (tests)
+var result_title := ""         # text of the last result card (tests read these, not pixels)
+var result_text := ""
 var w_btns := {}
 var hint: Label
 var fx_layer: Control
@@ -62,6 +68,7 @@ func _ready() -> void:
 	var hb := HBoxContainer.new()
 	hb.add_theme_constant_override("separation", 8)
 	hp_chip.add_child(hb)
+	hp_inner = hb
 	var heart := Label.new()
 	heart.text = "♥"
 	heart.add_theme_color_override("font_color", Color("#ff4d5e"))
@@ -132,8 +139,29 @@ func _ready() -> void:
 	dim.visible = false
 
 
-func _process(_dt: float) -> void:
+func _process(dt: float) -> void:
 	fx_layer.queue_redraw()
+	if hp_shake_t >= 0:
+		hp_shake_t += dt
+		var k := hp_shake_t / 0.3
+		var x := 0.0
+		if k >= 1.0:
+			hp_shake_t = -1.0
+		elif k < 0.25:
+			x = -4.0 * k / 0.25
+		elif k < 0.75:
+			x = -4.0 + 8.0 * (k - 0.25) / 0.5
+		else:
+			x = 4.0 * (1.0 - k) / 0.25
+		hp_inner.position.x = hp_base_x + x
+
+
+## Prototype damagePlayer(): restart the hpChip 'shake' animation.
+func hurt(_dmg: int) -> void:
+	if hp_shake_t < 0:
+		hp_base_x = hp_inner.position.x
+	hp_shake_t = 0.0
+	hp_shakes += 1
 
 
 # ---------------- widgets ----------------
@@ -292,21 +320,25 @@ func show_result() -> void:
 	if game.state == "won":
 		var n := game.stars_for(game.shots)
 		var last := game.level_idx == game.level_count() - 1
-		card_box.add_child(_title("All clear!" if last else "Level cleared", 36))
+		result_title = "All clear!" if last else "Level cleared"
+		result_text = "%s: %d shot%s (par %d), %d health left" % [game.L.name, game.shots, "" if game.shots == 1 else "s", game.L.par, game.player.p.hp]
+		card_box.add_child(_title(result_title, 36))
 		var st := HBoxContainer.new()
 		st.alignment = BoxContainer.ALIGNMENT_CENTER
 		for i in 3:
 			st.add_child(_title("★", 48, Color("#ffc93c") if i < n else PANEL2))
 		card_box.add_child(st)
-		card_box.add_child(_text("%s: %d shot%s (par %d), %d health left" % [game.L.name, game.shots, "" if game.shots == 1 else "s", game.L.par, game.player.p.hp]))
+		card_box.add_child(_text(result_text))
 		card_box.add_child(_row([_big_btn("Retry", "ghost", func(): main.restart()),
 			_big_btn("Levels" if last else "Next level", "main", func(): show_levels() if last else main.start(game.level_idx + 1))]))
 	else:
 		var ko := game.lose_why == "ko"
 		var c: Array = C.CAUSES.get(game.player.p.cause, C.CAUSES.crush)
 		var n := game.alive_count()
-		card_box.add_child(_title(c[0] if ko else "Out of ammo", 36))
-		card_box.add_child(_text(c[1] if ko else "%d enem%s still standing. Try a different angle or weapon." % [n, "y" if n == 1 else "ies"]))
+		result_title = c[0] if ko else "Out of ammo"
+		result_text = c[1] if ko else "%d enem%s still standing. Try a different angle or weapon." % [n, "y" if n == 1 else "ies"]
+		card_box.add_child(_title(result_title, 36))
+		card_box.add_child(_text(result_text))
 		card_box.add_child(_row([_big_btn("Levels", "ghost", func(): show_levels()), _big_btn("Try again", "alt", func(): main.restart())]))
 
 
