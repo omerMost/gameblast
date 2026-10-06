@@ -1,0 +1,5 @@
+# Suites run by ./check.sh, in order (fast ones first).
+smoke
+shooters
+selfharm
+sweep
