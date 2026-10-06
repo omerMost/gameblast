@@ -274,8 +274,8 @@ func _before_update() -> void:
 			continue
 		var a := C.norm_a(e.rotation)
 		var w: float = e.angular_velocity / C.STEP
-		if absf(a) < 0.45 and absf(w) < 0.1:
-			e.angular_velocity = (w * 0.75 - a * 0.03) * C.STEP
+		if absf(a) < (0.6 if e.p.get("knight", false) else 0.45) and absf(w) < 0.1:
+			e.angular_velocity = (w * 0.75 - a * (0.06 if e.p.get("knight", false) else 0.03)) * C.STEP
 	for b in bodies:
 		b.prev_v = b.linear_velocity
 
@@ -376,9 +376,9 @@ func hit(A: GBody, B: Node) -> void:
 		var deadly := false
 		var ratio := minf(_mass(B) / A.mass, 4.0)
 		if b_static:
-			deadly = rv > 7.5
+			deadly = rv > (9.5 if A.p.get("knight", false) else 7.5)
 		else:
-			deadly = rv * ratio > 6.5 and not (bk == "rag" and rv < 9) and bk != "enemy"
+			deadly = rv * ratio > (9.0 if A.p.get("knight", false) else 6.5) and not (bk == "rag" and rv < 9) and bk != "enemy"
 		if deadly:
 			A.p.dying = true
 			later(0, kill.bind(A, _vel(B) * 0.4 / C.STEP, rv * ratio > 16))
@@ -467,6 +467,8 @@ func make_ragdoll(e: GBody, ev: Vector2, gib: bool, S := 1.0) -> Vector2:
 			s = Vector2(dd.x / dl * rnd(3, 7) + rnd(-2, 2), dd.y / dl * rnd(3, 7) - rnd(1, 4))
 		pt.linear_velocity = (v + s) * C.STEP
 		pt.angular_velocity = (w0 + rnd(-0.15, 0.15) * (3.0 if gib else 1.0)) * C.STEP
+	if e.p.get("knight", false):
+		enemy_ai.drop_weapons(e, T, v, a)
 	var dl2 := v.length() if v.length() > 0 else 1.0
 	blood_burst(T.x, T.y - 8, v.x / dl2, v.y / dl2, 55 if gib else 22, 1.6 if gib else 1.0, col)
 	if gib:
@@ -575,6 +577,10 @@ func explode(p: Vector2, R: float, power: float, src, cause: String) -> void:
 			var q := PhysicsRayQueryParameters2D.create(p, b.global_position, C.L_STATIC | C.L_BLOCKER, [b.get_rid()])
 			if not space.intersect_ray(q).is_empty():
 				f *= 0.35
+		if k == "enemy" and b.p.get("knight", false):
+			var shield: Vector2 = b.wpt(b.loc.extra)
+			if p.x < shield.x + 4 and p.y > b.global_position.y - 48:
+				f *= 0.15
 		var J := minf(power * f, 20 * b.mass)
 		var dv: Vector2 = dir * J / b.mass   # Matter px/step
 		if k == "enemy":
@@ -706,6 +712,9 @@ func _update_enemies() -> void:
 			continue
 		var pl: Dictionary = e.p
 		var S := enemy_shoulder(e)
+		if pl.get("knight", false):
+			if alert: enemy_ai.update_knight(e)
+			continue
 		if pl.archer:
 			enemy_ai.update_archer(e, alert, player.wpt(player.loc.torso))
 			continue

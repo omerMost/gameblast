@@ -165,6 +165,17 @@ func _draw_block(b: GBody) -> void:
 	var h: float = b.p.h
 	var m: Dictionary = C.MAT[b.p.mat]
 	draw_set_transform(b.global_position, b.rotation)
+	if b.p.get("look", "") == "shield":
+		draw_colored_polygon(rr(-4,-23,8,46,3),Color("#8a5a2b"))
+		draw_rect(Rect2(-4,-23,8,46),Color("#c9ced8"),false,2)
+		draw_circle(Vector2.ZERO,3.5,Color("#c9ced8"))
+		draw_set_transform(Vector2.ZERO)
+		return
+	if b.p.get("look", "") == "sword":
+		draw_rect(Rect2(-2,-18,4,36),Color("#dfe4ec"))
+		draw_line(Vector2(-6,10),Vector2(6,10),Color("#c9a227"),3)
+		draw_set_transform(Vector2.ZERO)
+		return
 	var pts := rr(-w / 2, -h / 2, w, h, minf(4, minf(w / 4, h / 4)))
 	draw_colored_polygon(pts, m.fill)
 	draw_rect(Rect2(-w / 2, -h / 2, w, minf(4, h / 3)), Color(m.light, 0.65))
@@ -247,6 +258,15 @@ func _draw_enemy(e: GBody) -> void:
 		draw_circle(Hd + Vector2(0, -2), 14.5, Color("#3d4a2a"))
 		draw_circle(Hd + Vector2(0, 3), 12.5, col[0])
 		draw_rect(Rect2(Hd.x - 16, Hd.y - 3, 32, 4), Color("#3d4a2a"))
+	elif pl.get("knight", false):
+		draw_colored_polygon(rr(T.x-12,T.y-20,24,40,10), Color("#b9c0cc"))
+		draw_rect(Rect2(Lc.extra-Vector2(4,23),Vector2(8,46)),Color("#8a93a3"))
+		draw_circle(Hd,14,Color("#8a93a3"))
+		var swing: float = (game.sim-pl.get("swing",-100))/14.0 if game.sim-pl.get("swing",-100)<14 else -1.0
+		var angle := -2.3 if swing < 0 else -2.3 + sin(swing * PI) * -1.9 + swing * 0.2
+		var hand := T + Vector2(6,-10)
+		draw_line(hand,hand+Vector2(0,14).rotated(angle),col[1],7)
+		draw_line(hand+Vector2(0,16).rotated(angle),hand+Vector2(0,50).rotated(angle),Color("#dfe4ec"),4)
 	elif pl.archer:
 		draw_rect(Rect2(T.x + 6, T.y - 18, 8, 26), Color("#7a5530"))
 	else:

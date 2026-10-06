@@ -47,7 +47,7 @@ func balloon(x: float, y: float, body: GBody, local: Vector2, lift: float) -> GB
 	b.matter_inertia([b.mass])
 	b.set_air(0.04); b.set_phys(0.0, 0.3)
 	b.collision_layer = C.L_BALLOON
-	b.collision_mask = C.M_BODY | C.L_BALLOON
+	b.collision_mask = (C.M_BODY & ~C.L_MISSILE) | C.L_BALLOON
 	var cols := [Color("#ff5a6e"), Color("#ffc93c"), Color("#4fb8ff"), Color("#b07cff"), Color("#5ee08a")]
 	b.p = {"lift": lift, "col": cols[balloons.size() % cols.size()]}
 	b.watch_contacts()

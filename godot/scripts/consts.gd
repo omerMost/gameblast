@@ -47,7 +47,7 @@ const L_BALLOON := 128
 const M_BODY := L_STATIC | L_BODY | L_ENEMY | L_PROJ | L_MISSILE
 const M_ENEMY := L_STATIC | L_BODY | L_ENEMY | L_PROJ
 const M_PROJ := L_STATIC | L_BODY | L_ENEMY | L_BALLOON
-const M_MISSILE := L_STATIC | L_BODY | L_BALLOON
+const M_MISSILE := L_STATIC | L_BODY
 
 const CAUSES := {
 	"self": ["Caught in your own blast", "Blasts hurt you too. Aim farther from yourself."],

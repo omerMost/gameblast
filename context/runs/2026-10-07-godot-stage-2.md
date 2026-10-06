@@ -10,7 +10,7 @@ By morning, every stage-2 enemy and feature from the web prototype (`prototype/i
 1. Player damage and death causes, and the death screen with cause + tip.
 2. **Done:** FX and the blood toggle, including ragdoll bleeding, ground-clipped decals and low-HP fill.
 3. **Done:** Archers (arcing arrows that stick). Level 19 "Archers".
-4. Knights (run, jump, climb, frontal shield blocks blasts, drop real weapons). Level 20 "Knights".
+4. **Done:** Knights (run, jump, climb, frontal shield blocks blasts, drop real weapons). Level 20 "Knights".
 5. Jetpack troopers (thrown grenades with a landing telegraph, the pack explodes). Level 25 "Jetpacks".
 6. **Done:** Ropes, balloons, bouncy pads. Levels 21 "Hanging stone", 22 "Sky raft", 23 "Bounce house".
 7. **Done:** Black holes (bend shots, the preview curves). Level 24 "Black hole".

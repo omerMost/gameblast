@@ -6,6 +6,8 @@ When you complete a backlog item, move its bullet from `backlog.md` to here in t
 
 ---
 
+- 2026-10-07 — Stage-2 step 4: knights and original L20, frontal shield and rear/overhead bypass, sword delay/cooldown, run/jump/climb and physical dropped weapons. Eleven levels verified with real-input clearance. Content validator now rejects malformed opcodes/geometry/references; enemy missiles follow prototype balloon collision filtering.
+
 - 2026-10-07 — Stage-2 integration checkpoint on the run branch: archers (L19), ropes/balloons/bridges/pads (L21–23), wells/curved preview (L24), 25 procedural sound effects and 112 BPM ducking music. Ten playable levels retain original ammo/par and pass real-input bot clearance. Godot check runner/content validation/bots complete; web checks remain queued.
 
 - 2026-10-07 — Stage-2 step 2 on the run branch: FX/blood parity audit, ongoing ragdoll bleeding, clipped decals, proportional low-HP bar and headless FX regression coverage. Added level-data validator and `context/build-guide.md`.

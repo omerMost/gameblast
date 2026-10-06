@@ -116,3 +116,66 @@ func stuck_pose(entry: Dictionary) -> Dictionary:
 	if not game.in_world(body):
 		return {}
 	return {"pos": body.global_position + entry.local.rotated(body.rotation), "a": entry.a + body.rotation}
+
+## Exact prototype groundAt point query, including other enemies as footholds.
+func ground_at(pos: Vector2, self_body: GBody) -> bool:
+	var q := PhysicsPointQueryParameters2D.new()
+	q.position = pos
+	q.collision_mask = C.L_STATIC | C.L_SOLID | C.L_ENEMY
+	q.exclude = [self_body.get_rid()]
+	return not game.get_world_2d().direct_space_state.intersect_point(q, 32).is_empty()
+
+func update_knight(e: GBody) -> void:
+	if absf(C.norm_a(e.rotation)) > 0.5: return
+	var pl := e.p
+	var foot := e.wpt(e.loc.feet)
+	var delta := game.player.global_position - e.global_position
+	var dir := signf(delta.x)
+	if dir == 0: dir = -1
+	var grounded := ground_at(foot + Vector2(-10,7), e) or ground_at(foot + Vector2(10,7), e) or ground_at(foot + Vector2(0,7), e)
+	if absf(delta.x) < 58 and absf(delta.y) < 70:
+		if game.sim > pl.get("swing_cd", 0):
+			pl.swing_cd = game.sim + 55
+			pl.swing = game.sim
+			game.sound_requested.emit("swing", 1.0)
+			game.later(9, sword_hit.bind(e, dir))
+		if grounded: e.linear_velocity.x *= 0.7
+		return
+	if not grounded: return
+	var vx := e.linear_velocity.x / C.STEP
+	vx += (dir * 2.1 - vx) * 0.25
+	e.linear_velocity.x = vx * C.STEP
+	pl.stuck = pl.get("stuck", 0) + 1 if absf(vx) < 0.7 else 0
+	if game.sim > pl.get("jump_cd", 0):
+		var fx := foot.x + dir * 30
+		var wall := ground_at(Vector2(fx,foot.y - 22),e) or ground_at(Vector2(fx,foot.y - 50),e)
+		var gap := true
+		for d in range(6,81,12):
+			if ground_at(Vector2(fx,foot.y + d),e):
+				gap = false
+				break
+		if wall or gap or pl.stuck > 25 or (delta.y < -40 and absf(delta.x) < 170):
+			pl.stuck = 0
+			e.linear_velocity = Vector2(dir * (4.3 if gap else 2.7), -8.8) * C.STEP
+			pl.jump_cd = game.sim + 45
+			game.sound_requested.emit("jump", 1.0)
+			Debug.log_event("knight_jump", {"gap":gap})
+
+func sword_hit(e: GBody, dir: float) -> void:
+	if not game.in_world(e) or not e.p.alive or not game.player.p.alive: return
+	if game.player.global_position.distance_to(e.global_position) < 75:
+		game.damage_player(20, Vector2(dir * 4,-2), null, "sword")
+		game.player.apply_central_impulse(Vector2(dir * 0.006,-0.003) * C.FORCE_IMPULSE)
+		game.sound_requested.emit("clang", 1.0)
+		Debug.log_event("sword_hit", {"delay":game.sim - e.p.swing})
+
+func drop_weapons(e: GBody, torso: Vector2, v: Vector2, angle: float) -> void:
+	var sh := game.builder.add_block(e.wpt(e.loc.extra).x,e.wpt(e.loc.extra).y,8,46,"wood",angle)
+	sh.p.look = "shield"
+	sh.linear_velocity = (v + Vector2(game.rnd(-2,2), -game.rnd(1,3))) * C.STEP
+	sh.angular_velocity = game.rnd(-0.2,0.2) * C.STEP
+	var sw := game.builder.add_block(torso.x + 14,torso.y - 10,4,36,"stone",angle + 0.5)
+	sw.p.look = "sword"
+	sw.p.hp = 1e9
+	sw.linear_velocity = (v + Vector2(game.rnd(-3,3), -game.rnd(2,5))) * C.STEP
+	sw.angular_velocity = game.rnd(-0.4,0.4) * C.STEP

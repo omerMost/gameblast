@@ -46,7 +46,7 @@ const LEVELS := [
 			["enemy", 650, 650], ["enemy", 720, 650], ["barrel", 775, 650],
 		]},
 	null, null, null, null, null, null, null, null, null, null, null, null, null,
-	ArcherLevel.DATA, null,
+	ArcherLevel.DATA, KnightLevel.DATA,
 	{"name": "Hanging stone", "view": [0,240,920,480], "ammo": {"rocket":2,"grenade":2}, "par":1, "hint":"Shoot the rope", "build":[
 		["ground",0,190,560], ["ground",190,980,650], ["wall",820,300,840,650], ["wall",560,300,840,318],
 		["boulder",630,470,34,"stone"], ["hang",[630,318],"stone",[0,-34]],

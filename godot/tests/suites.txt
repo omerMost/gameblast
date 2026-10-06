@@ -9,3 +9,5 @@ bot
 world_mechanics
 audio
 archer
+
+knight
