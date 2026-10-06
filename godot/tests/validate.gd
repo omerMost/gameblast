@@ -59,4 +59,4 @@ func _ready() -> void:
 		print("FAIL ", failure)
 	print("VALIDATE %d levels, %d assertions" % [count, assertions])
 	print("VALIDATE RESULT: ", "PASS" if failures.is_empty() else "FAIL")
-	get_tree().quit(0 if failures.is_empty() else 1)
+	await TestUtil.finish(self, 0 if failures.is_empty() else 1)

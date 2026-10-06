@@ -54,7 +54,8 @@ func set_air(frictionAir: float) -> void:
 func watch_contacts() -> void:
 	contact_monitor = true
 	max_contacts_reported = 16
-	body_shape_entered.connect(_on_body_shape_entered)
+	if not body_shape_entered.is_connected(_on_body_shape_entered):
+		body_shape_entered.connect(_on_body_shape_entered)
 
 
 func _on_body_shape_entered(_rid: RID, other: Node, _other_shape: int, _local_shape: int) -> void:

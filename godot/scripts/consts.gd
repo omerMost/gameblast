@@ -42,10 +42,12 @@ const L_PROJ := 16      # player grenade / rocket
 const L_MISSILE := 32   # enemy bullets (Matter EMF: never hit enemies)
 const L_SOLID := 64     # blocks/boulders/barrels: block enemy line of sight (layer only)
 
+const L_BALLOON := 128
+
 const M_BODY := L_STATIC | L_BODY | L_ENEMY | L_PROJ | L_MISSILE
 const M_ENEMY := L_STATIC | L_BODY | L_ENEMY | L_PROJ
-const M_PROJ := L_STATIC | L_BODY | L_ENEMY
-const M_MISSILE := L_STATIC | L_BODY
+const M_PROJ := L_STATIC | L_BODY | L_ENEMY | L_BALLOON
+const M_MISSILE := L_STATIC | L_BODY | L_BALLOON
 
 const CAUSES := {
 	"self": ["Caught in your own blast", "Blasts hurt you too. Aim farther from yourself."],

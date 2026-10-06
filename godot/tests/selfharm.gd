@@ -18,7 +18,7 @@ func _ready() -> void:
 	var deaths := 0
 	var hurt := 0
 	var causes := {}
-	for i in g.level_count():
+	for i in g.available_levels():
 		for s in SHOTS:
 			await Debug.start_level(i)
 			var a := deg_to_rad(s[0])
@@ -53,8 +53,8 @@ func _ready() -> void:
 	if dd.size() != 1 or dd[0].cause != "self":
 		fails.append("forced self-blast death missing or wrong cause: %s" % [dd])
 	deaths += dd.size()
-	print("SELFHARM %d shots: %d damage events by cause %s, %d deaths" % [g.level_count() * SHOTS.size(), hurt, causes, deaths])
+	print("SELFHARM %d shots: %d damage events by cause %s, %d deaths" % [g.available_levels().size() * SHOTS.size(), hurt, causes, deaths])
 	for f in fails:
 		print("  ", f)
 	print("SELFHARM RESULT: ", "PASS" if fails.is_empty() and hurt > 0 else "FAIL")
-	get_tree().quit(0 if fails.is_empty() and hurt > 0 else 1)
+	await TestUtil.finish(self, 0 if fails.is_empty() and hurt > 0 else 1)

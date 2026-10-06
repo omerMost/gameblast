@@ -6,6 +6,8 @@ When you complete a backlog item, move its bullet from `backlog.md` to here in t
 
 ---
 
+- 2026-10-07 — Stage-2 integration checkpoint on the run branch: archers (L19), ropes/balloons/bridges/pads (L21–23), wells/curved preview (L24), 25 procedural sound effects and 112 BPM ducking music. Ten playable levels retain original ammo/par and pass real-input bot clearance. Godot check runner/content validation/bots complete; web checks remain queued.
+
 - 2026-10-07 — Stage-2 step 2 on the run branch: FX/blood parity audit, ongoing ragdoll bleeding, clipped decals, proportional low-HP bar and headless FX regression coverage. Added level-data validator and `context/build-guide.md`.
 
 - 2026-10-07 — Godot port stage 1 (core loop + levels 1–5) in `godot/`, Godot 4.7.2. Headless checks pass with no script errors: all 5 levels stay stable for 300 idle ticks; a sweep finds a winning shot within ammo for each (levels 1, 2, 4, 5 in one shot, level 3 in two = par); shooters fire on line of sight and are blocked by stone; every player death has a cause; no fall/crush damage without an explosion. Feel compared with the prototype over 256 shots: 229/256 match after the ADR 0006 retuning.

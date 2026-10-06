@@ -88,6 +88,11 @@ func _ready() -> void:
 	sp.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	top.add_child(sp)
 	top.add_child(_icon_btn("↻", func(): main.restart()))
+	var sound := _icon_btn("♪", func():
+		main.audio.toggle_mute())
+	sound.pressed.connect(func(): sound.text = "×♪" if main.audio.muted else "♪")
+	sound.tooltip_text = "Mute / unmute sound"
+	top.add_child(sound)
 
 	# --- weapon bar
 	var wbar := HBoxContainer.new()
@@ -275,7 +280,16 @@ func show_title() -> void:
 	card_box.add_child(_title("Ranger", 60, TEAL))
 	card_box.add_child(_text("Topple towers, outlast knights and archers, and bend your shots through portals and black holes."))
 	card_box.add_child(_big_btn("Play", "main", func(): main.play()))
-	card_box.add_child(_big_btn("Choose level", "ghost", func(): show_levels()))
+	card_box.add_child(_big_btn("Choose level", "ghost", func(): main.open_levels()))
+	var music := Button.new()
+	music.name = "MusicToggle"
+	music.flat = true
+	music.focus_mode = Control.FOCUS_NONE
+	music.text = "Music: " + ("on" if Save.prog.music else "off")
+	music.pressed.connect(func():
+		main.audio.toggle_music()
+		music.text = "Music: " + ("on" if Save.prog.music else "off"))
+	music.add_theme_color_override("font_color", Color(INK, 0.75))
 	var blood := Button.new()
 	blood.flat = true
 	blood.focus_mode = Control.FOCUS_NONE
@@ -285,7 +299,9 @@ func show_title() -> void:
 		Save.prog.blood = not Save.prog.blood
 		Save.save()
 		blood.text = "Blood: " + ("on" if Save.prog.blood else "off"))
-	card_box.add_child(blood)
+	var toggles := _row([music, blood])
+	toggles.alignment = BoxContainer.ALIGNMENT_CENTER
+	card_box.add_child(toggles)
 
 
 func show_levels() -> void:
@@ -296,7 +312,7 @@ func show_levels() -> void:
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 8)
 	card_box.add_child(grid)
-	for i in game.level_count():
+	for i in game.available_levels():
 		var open: bool = i < int(Save.prog.unlocked)
 		var s := Save.stars(i)
 		var b := Button.new()
@@ -319,7 +335,7 @@ func show_result() -> void:
 	_clear_card()
 	if game.state == "won":
 		var n := game.stars_for(game.shots)
-		var last := game.level_idx == game.level_count() - 1
+		var last := game.next_level(game.level_idx) == -1
 		result_title = "All clear!" if last else "Level cleared"
 		result_text = "%s: %d shot%s (par %d), %d health left" % [game.L.name, game.shots, "" if game.shots == 1 else "s", game.L.par, game.player.p.hp]
 		card_box.add_child(_title(result_title, 36))
@@ -330,7 +346,7 @@ func show_result() -> void:
 		card_box.add_child(st)
 		card_box.add_child(_text(result_text))
 		card_box.add_child(_row([_big_btn("Retry", "ghost", func(): main.restart()),
-			_big_btn("Levels" if last else "Next level", "main", func(): show_levels() if last else main.start(game.level_idx + 1))]))
+			_big_btn("Levels" if last else "Next level", "main", func(): show_levels() if last else main.start(game.next_level(game.level_idx)))]))
 	else:
 		var ko := game.lose_why == "ko"
 		var c: Array = C.CAUSES.get(game.player.p.cause, C.CAUSES.crush)

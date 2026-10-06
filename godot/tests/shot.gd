@@ -3,7 +3,7 @@ extends Node
 ## godot --path . res://tests/shot.tscn -- --level=2 --out=/tmp/x
 
 func _ready() -> void:
-	var main = await TestUtil.boot(self)
+	var main = await TestUtil.boot(self, true)
 	main.set_process_unhandled_input(false)   # keep the real mouse from moving the aim
 	var g: Game = Debug.game
 	var lvl := 2
@@ -26,4 +26,4 @@ func _ready() -> void:
 	await Debug.step(int(OS.get_environment("BR_TICKS")) if OS.get_environment("BR_TICKS") != "" else 48)
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png(out + "_blast.png")
-	get_tree().quit(0)
+	await TestUtil.finish(self, 0)

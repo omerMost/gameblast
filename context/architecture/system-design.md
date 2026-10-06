@@ -52,7 +52,7 @@ godot/
   scripts/view.gd        world renderer (_draw under the camera); never touches physics
   scripts/background.gd  screen-space sky/sun/clouds/dunes
   scripts/hud.gd         HUD chips, weapon buttons, hint, title/levels/result cards, aim gizmo, flash/hurt overlay
-  levels/levels.gd       LEVELS[] as data ({name, view, ammo, par, hint, portals, build:[ops]}); levels 1-5 so far
+  levels/levels.gd       LEVELS[] as data ({name, view, ammo, par, hint, portals, build:[ops]}); levels 1–5, 19, 21–24; null placeholders preserve numbering
   autoload/save.gd       Save: user://save.json
   autoload/debug.gd      Debug: window.__dbg mirror (start_level, set_aim, fire, step, alive, state, predict) + event log
   tests/                 headless test scenes + run.sh, suites.txt; root check.sh checks logs and exit status
@@ -67,3 +67,5 @@ Mapping: Matter `collisionStart` → `body_shape_entered` → `Game.hit()` (flag
 - The player has infinite inertia (can't rotate). This fixed the "dying for no reason" bug, where launcher recoil tipped the soldier over (see `sessions/2026-10-02-22-31-*`). **Don't remove it.** The Godot port keeps it as `player.lock_rotation = true` in `Game.start_level()`.
 
 FX parity: moving ragdoll parts bleed every third simulation tick; blood-off emits colored debris. View clips blood/scorch ellipse polygons to non-pad statics and scales the overhead HP fill directly to health. The FX suite exercises both toggle states, real deaths and decal clipping; validate checks playable level metadata and core blast constants.
+
+Stage-2 boundaries: `enemy_ai.gd` owns archer lob planning, arrow lifetimes and embedded-arrow poses. `world_mechanics.gd` owns distance ropes/links, balloon lift/pop, pad restitution correction and well force/swallow/preview queries. Empty forces never assign velocities, preserving buffered impulses on ordinary levels. `audio.gd` owns independent cosmetic RNG, cached procedural PCM, polyphonic buses, the 112 BPM score and duck envelope; Game emits sound requests. Sparse progression uses available_levels/next_level and saves the next playable index. Decal polygons are cached per immutable stain rather than intersected every frame.

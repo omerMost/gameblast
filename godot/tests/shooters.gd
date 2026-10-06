@@ -46,4 +46,4 @@ func _ready() -> void:
 	if through != 0:
 		fails.append("shot through wall")
 	print("SHOOTERS RESULT: ", "PASS" if fails.is_empty() else "FAIL %s" % [fails])
-	get_tree().quit(0 if fails.is_empty() else 1)
+	await TestUtil.finish(self, 0 if fails.is_empty() else 1)

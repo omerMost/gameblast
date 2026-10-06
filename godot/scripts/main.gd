@@ -7,6 +7,7 @@ var view: View
 var cam: Camera2D
 var hud: Hud
 var bg: Background
+var audio: RangerAudio
 var drag = null   # {x0, y0, x, y} in viewport (virtual) pixels while aiming
 
 
@@ -37,15 +38,27 @@ func _ready() -> void:
 	game.show_result.connect(hud.show_result)
 	game.player_hurt.connect(hud.hurt)
 
+	audio = RangerAudio.new()
+	audio.game = game
+	add_child(audio)
+	game.sound_requested.connect(audio.sfx)
+	game.player_hurt.connect(audio.hurt)
+	game.show_result.connect(audio.result)
+
 	game.start_level(0)
 	hud.show_title()
 
 
 func play() -> void:
-	start(mini(int(Save.prog.unlocked) - 1, game.level_count() - 1))
+	var index := 0
+	for i in game.available_levels():
+		if i < int(Save.prog.unlocked):
+			index = i
+	start(index)
 
 
 func start(i: int) -> void:
+	audio.start_music()
 	drag = null
 	game.start_level(i)
 	hud.hide_overlay()
@@ -58,6 +71,7 @@ func restart() -> void:
 
 
 func open_levels() -> void:
+	audio.start_music()
 	drag = null
 	hud.show_levels()
 

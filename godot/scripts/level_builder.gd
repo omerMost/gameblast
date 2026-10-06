@@ -13,6 +13,7 @@ func _init(g: Node) -> void:
 
 
 func run(ops: Array) -> void:
+	var refs := {}
 	for op in ops:
 		var a: Array = op
 		match a[0]:
@@ -21,9 +22,18 @@ func run(ops: Array) -> void:
 			"wall": wall(a[1], a[2], a[3], a[4])
 			"pad": pad(a[1], a[2], a[3], a[4])
 			"slope": slope(a[1], a[2], a[3], a[4], a[5] if a.size() > 5 else 40.0)
-			"block": block(a[1], a[2], a[3], a[4], a[5])
+			"block":
+				var b := block(a[1], a[2], a[3], a[4], a[5])
+				if a.size() > 6:
+					refs[a[6]] = b
 			"enemy": enemy(a[1], a[2], a[3] if a.size() > 3 else {})
-			"boulder": boulder(a[1], a[2], a[3])
+			"boulder":
+				var b := boulder(a[1], a[2], a[3])
+				if a.size() > 4:
+					refs[a[4]] = b
+			"hang", "tether": game.tricks.rope(null, Vector2(a[1][0], a[1][1]), refs[a[2]], Vector2(a[3][0], a[3][1]), 0.95 if a[0] == "hang" else 0.6, 0.05 if a[0] == "hang" else 0.1)
+			"balloon": game.tricks.balloon(a[1], a[2], refs[a[3]], Vector2(a[4][0], a[4][1]), a[5])
+			"bridge": game.tricks.bridge(a[1], a[2], a[3], a[4], a[5])
 			"barrel": barrel(a[1], a[2])
 			_: push_error("LevelBuilder: op '%s' is not ported yet (stage 2)" % a[0])
 
@@ -110,6 +120,7 @@ func _body(kind: String, pos: Vector2) -> GBody:
 	b.center_of_mass_mode = RigidBody2D.CENTER_OF_MASS_MODE_CUSTOM
 	b.center_of_mass = Vector2.ZERO
 	b.set_air(0.01)
+	b.watch_contacts()
 	return b
 
 
@@ -206,8 +217,8 @@ func enemy(x: float, bottom: float, o: Dictionary) -> GBody:
 	var e := make_char(x, bottom, "enemy")
 	e.collision_layer = C.L_ENEMY
 	e.collision_mask = C.M_ENEMY
-	e.p.merge({"shooter": o.get("shooter", false), "aim_a": PI, "next": 0, "alert_at": 0, "mflash": 0, "dying": false})
-	for k in ["archer", "knight", "jet", "titan", "dragon"]:
+	e.p.merge({"shooter": o.get("shooter", false), "archer": o.get("archer", false), "lob": 0.0, "draw": 0, "aim_a": PI, "next": 0, "alert_at": 0, "mflash": 0, "dying": false})
+	for k in ["knight", "jet", "titan", "dragon"]:
 		if o.get(k, false):
 			push_error("LevelBuilder: enemy type '%s' is not ported yet (stage 2)" % k)
 	game.add_body(e)

@@ -29,3 +29,5 @@ When to update: any change that alters the sequence, adds a step, or changes whe
 ## Trust boundaries
 
 None. It's a client-only game with no network input. All scripts and fonts are served from the same origin.
+
+Stage-2 additions: LevelBuilder resolves named bodies for hang/tether/balloon ops. Each physics tick updates ropes/well swallowing, arrow lifetimes and delayed archer releases. WorldMechanics applies constraints/lift/nonzero well acceleration before the next step; predict and enemy lob planning use its same acceleration function. Arrows are removed only from the deferred queue and can embed visual marks in living bodies or terrain. Game's sound_requested/player_hurt/result signals feed RangerAudio; explosion ducking runs on audio real time, independent of physics slow motion. Results unlock the next available level across placeholder gaps.

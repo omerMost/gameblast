@@ -1,0 +1,118 @@
+class_name EnemyAI
+extends RefCounted
+## Stage-2 enemy behaviour and missiles, translated from prototype solveLob/updateEnemies.
+var game: Game
+var arrows := []
+var stuck := []
+
+func _init(g: Game) -> void:
+	game = g
+
+func reset() -> void:
+	arrows.clear()
+	stuck.clear()
+
+## Matter updates velocity (gravity) before position. Return the first viable speed.
+func solve_lob(S: Vector2, T: Vector2, speeds: Array, prefer_high: bool) -> Dictionary:
+	var dir_x := signf(T.x - S.x)
+	if dir_x == 0:
+		dir_x = -1
+	for speed in speeds:
+		var low := {}
+		var high := {}
+		for degrees in range(-20, 83, 2):
+			var a := deg_to_rad(degrees)
+			var pos := S
+			var v := Vector2(cos(a) * speed * dir_x, -sin(a) * speed)
+			var best := INF
+			for tick in 240:
+				v += game.tricks.acceleration(pos)
+				v.y += C.GS
+				pos += v
+				best = minf(best, pos.distance_to(T))
+				if pos.y > T.y + 60 and v.y > 0:
+					break
+			var candidate := {"a": Vector2(cos(a) * dir_x, -sin(a)).angle(), "miss": best, "degrees": degrees, "speed": speed}
+			if degrees < 38:
+				if low.is_empty() or best < low.miss:
+					low = candidate
+			elif high.is_empty() or best < high.miss:
+				high = candidate
+		for candidate in [high, low] if prefer_high else [low, high]:
+			if not candidate.is_empty() and candidate.miss < 26:
+				return candidate
+	return {}
+
+func update_archer(e: GBody, alert: bool, target: Vector2) -> void:
+	var pl := e.p
+	var S := game.enemy_shoulder(e)
+	var want: float = pl.lob if pl.lob else (game.player_head() - S).angle()
+	pl.aim_a += C.norm_a(want - pl.aim_a) * 0.12
+	if not alert:
+		return
+	if pl.next == 0:
+		pl.next = game.sim + game.rng.randi_range(50, 119)
+		pl.alert_at = game.sim
+		game.sound_requested.emit("alert", 1.0)
+	if absf(C.norm_a(e.rotation)) > 0.4 or game.sim < pl.next:
+		return
+	pl.next = game.sim + game.rng.randi_range(150, 219)
+	var sol := solve_lob(S, target, [13, 15, 17, 19], game.los_blocked(S, target))
+	if sol.is_empty():
+		return
+	pl.lob = sol.a
+	pl.draw = game.sim
+	game.later(18, release_arrow.bind(e, sol))
+
+func release_arrow(e: GBody, sol: Dictionary) -> void:
+	if not game.in_world(e) or not e.p.alive or game.state != "play":
+		return
+	var a: float = sol.a + game.rnd(-0.025, 0.025)
+	var dir := Vector2.from_angle(a)
+	spawn_arrow(game.enemy_shoulder(e) + dir * 22, dir * sol.speed)
+	game.sound_requested.emit("bow", 1.0)
+	e.p.lob = 0.0
+	Debug.log_event("arrow_fired", {"draw_ticks": game.sim - e.p.draw, "speed": sol.speed})
+
+func spawn_arrow(pos: Vector2, velocity: Vector2) -> GBody:
+	var arrow := game.builder._body("arrow", pos)
+	arrow.add_rect(Vector2.ZERO, Vector2(26, 3))
+	arrow.mass = 26 * 3 * 0.004
+	arrow.set_phys(0.1, 0.0)
+	arrow.set_air(0.0)
+	arrow.lock_rotation = true
+	arrow.rotation = velocity.angle()
+	arrow.collision_layer = C.L_MISSILE
+	arrow.collision_mask = C.M_MISSILE
+	arrow.continuous_cd = RigidBody2D.CCD_MODE_CAST_SHAPE
+	arrow.can_sleep = false
+	arrow.p = {"born": game.sim, "done": false}
+	arrow.watch_contacts()
+	game.add_body(arrow)
+	arrow.linear_velocity = velocity * C.STEP
+	arrow.prev_v = arrow.linear_velocity
+	arrows.append(arrow)
+	return arrow
+
+func update_arrows() -> void:
+	for arrow in arrows.duplicate():
+		if game.sim - arrow.p.born > 300 or arrow.global_position.y > 1600:
+			game.remove_body(arrow)
+
+func stick_arrow(body: Node, pos: Vector2, angle: float) -> void:
+	game.sound_requested.emit("thunk", 1.0)
+	var tip := pos + Vector2.from_angle(angle) * 8
+	if body is StaticBody2D:
+		stuck.append({"pos": tip, "a": angle})
+	else:
+		stuck.append({"body": weakref(body), "local": (tip - body.global_position).rotated(-body.rotation), "a": angle - body.rotation})
+	if stuck.size() > 60:
+		stuck.pop_front()
+
+func stuck_pose(entry: Dictionary) -> Dictionary:
+	if not entry.has("body"):
+		return entry
+	var body = entry.body.get_ref()
+	if not game.in_world(body):
+		return {}
+	return {"pos": body.global_position + entry.local.rotated(body.rotation), "a": entry.a + body.rotation}

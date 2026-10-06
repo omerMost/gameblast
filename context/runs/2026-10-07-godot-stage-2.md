@@ -9,14 +9,14 @@ By morning, every stage-2 enemy and feature from the web prototype (`prototype/i
 0. Run file (this), then `check.sh` at the repo root (runs `godot/tests/suites.txt`; fails on exit≠0, script error, TIMEOUT, or no `RESULT: PASS`).
 1. Player damage and death causes, and the death screen with cause + tip.
 2. **Done:** FX and the blood toggle, including ragdoll bleeding, ground-clipped decals and low-HP fill.
-3. Archers (arcing arrows that stick). Level 19 "Archers".
+3. **Done:** Archers (arcing arrows that stick). Level 19 "Archers".
 4. Knights (run, jump, climb, frontal shield blocks blasts, drop real weapons). Level 20 "Knights".
 5. Jetpack troopers (thrown grenades with a landing telegraph, the pack explodes). Level 25 "Jetpacks".
-6. Ropes, balloons, bouncy pads. Levels 21 "Hanging stone", 22 "Sky raft", 23 "Bounce house".
-7. Black holes (bend shots, the preview curves). Level 24 "Black hole".
+6. **Done:** Ropes, balloons, bouncy pads. Levels 21 "Hanging stone", 22 "Sky raft", 23 "Bounce house".
+7. **Done:** Black holes (bend shots, the preview curves). Level 24 "Black hole".
 8. Titans (belly-only weak spot, ARMOR / CORE HIT!, stomp shake, ledge jumps, fist smash). Level 31 "Titan".
 9. Dragons (fly, roar, mouth glow, real fire, grenade-in-mouth only, SCALES / GULP). Level 33 "Dragon".
-10. Music with ducking on explosions, plus the music toggle.
+10. **Done:** Music with ducking on explosions, plus the music toggle.
 11. Morning page, STATE, backlog/done, architecture, session note, push.
 
 ## Night rules
@@ -31,3 +31,5 @@ By morning, every stage-2 enemy and feature from the web prototype (`prototype/i
 
 ## Codex continuation
 Resumed the existing worktree/branch after reviewing its usage-limit session and morning page. Added a build guide and level-data validation; independent world/audio work uses isolated worktrees. No merge authorization is inferred from resuming.
+
+Integration checkpoint groups independently ported steps 3, 6, 7 and 10 in one bootable verified tree because they share Game/View/lifecycle hooks; later enemy steps retain separate checkpoints. This grouping is provisional for morning review.

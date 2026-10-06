@@ -47,6 +47,7 @@ func _draw() -> void:
 		_draw_portal(e, t)
 	for s in game.statics:
 		_draw_static(s)
+	game.tricks.draw(self)
 	_draw_decals()
 	for b in game.bodies:
 		match b.kind:
@@ -60,6 +61,11 @@ func _draw() -> void:
 			"grenade": _draw_grenade(b)
 			"rocket": _draw_rocket(b)
 			"bullet": _draw_bullet(b)
+			"arrow": _draw_arrow(b.global_position, b.linear_velocity.angle(), 22)
+	for entry in game.enemy_ai.stuck:
+		var pose: Dictionary = game.enemy_ai.stuck_pose(entry)
+		if not pose.is_empty():
+			_draw_arrow(pose.pos, pose.a, 28)
 	_draw_player()
 	_draw_particles()
 	if drag_active and game.aim.active and game.can_fire():
@@ -111,22 +117,29 @@ func decal_polygons(center: Vector2, radius: Vector2, angle: float) -> Array:
 	return clipped
 
 
-func _draw_decal_ellipse(center: Vector2, radius: Vector2, angle: float, color: Color) -> void:
-	for polygon in decal_polygons(center, radius, angle):
-		draw_colored_polygon(polygon, color)
+func _draw_decal_ellipse(center: Vector2, radius: Vector2, angle: float, color: Color, cache: Dictionary, key: String) -> void:
+	# Decals and static platforms do not move within a level. Clip once, then reuse
+	# the polygons; repeated geometry intersections made headless bot searches slow.
+	if not cache.has(key):
+		cache[key] = decal_polygons(center, radius, angle)
+	for polygon in cache[key]:
+		if not Geometry2D.triangulate_polygon(polygon).is_empty():
+			draw_colored_polygon(polygon, color)
 
 
 func _draw_decals() -> void:
 	for d in game.decals:
 		var center := Vector2(d.x, d.y)
 		if d.t == "scorch":
-			_draw_decal_ellipse(center, Vector2.ONE * d.r, 0, Color(0.16, 0.1, 0.05, 0.28))
-			_draw_decal_ellipse(center, Vector2.ONE * d.r * 0.55, 0, Color(0.1, 0.06, 0.03, 0.25))
+			_draw_decal_ellipse(center, Vector2.ONE * d.r, 0, Color(0.16, 0.1, 0.05, 0.28), d, "clip_outer")
+			_draw_decal_ellipse(center, Vector2.ONE * d.r * 0.55, 0, Color(0.1, 0.06, 0.03, 0.25), d, "clip_inner")
 		elif Save.prog.blood:
 			var color := Color(150 / 255.0, 10 / 255.0, 24 / 255.0, 0.88)
-			_draw_decal_ellipse(center, Vector2(d.r * d.sx, d.r * 0.75), d.get("a", 0.0), color)
+			_draw_decal_ellipse(center, Vector2(d.r * d.sx, d.r * 0.75), d.get("a", 0.0), color, d, "clip_blood")
+			var dot_index := 0
 			for dot in d.get("dots", []):
-				_draw_decal_ellipse(center + Vector2(dot[0], dot[1]), Vector2.ONE * dot[2], 0, color)
+				_draw_decal_ellipse(center + Vector2(dot[0], dot[1]), Vector2.ONE * dot[2], 0, color, d, "clip_dot%d" % dot_index)
+				dot_index += 1
 
 
 func _draw_portal(e: Dictionary, t: float) -> void:
@@ -234,27 +247,45 @@ func _draw_enemy(e: GBody) -> void:
 		draw_circle(Hd + Vector2(0, -2), 14.5, Color("#3d4a2a"))
 		draw_circle(Hd + Vector2(0, 3), 12.5, col[0])
 		draw_rect(Rect2(Hd.x - 16, Hd.y - 3, 32, 4), Color("#3d4a2a"))
+	elif pl.archer:
+		draw_rect(Rect2(T.x + 6, T.y - 18, 8, 26), Color("#7a5530"))
 	else:
 		# bazooka-less grunt: rifle held across the body
 		draw_line(T + Vector2(9, -1), T + Vector2(-30, -9), Color("#2c2833"), 4)
 		draw_line(T + Vector2(11, 0), T + Vector2(3, 1), Color("#2c2833"), 7)
 		draw_line(T + Vector2(4, -12), T + Vector2(-12, -5), col[1], 7)
 	draw_set_transform(Vector2.ZERO)
-	if pl.shooter:
+	if pl.shooter or pl.archer:
 		var S := game.enemy_shoulder(e)
 		var a: float = pl.aim_a
 		var flip := -1.0 if absf(C.norm_a(a)) > PI / 2 else 1.0
 		draw_set_transform(S, a, Vector2(1, flip))
-		draw_line(Vector2(-8, 2), Vector2(32, 0), Color("#2c2833"), 4)
-		draw_line(Vector2(-10, 3), Vector2(0, 4), Color("#2c2833"), 7)
-		draw_line(Vector2(-4, -3), Vector2(12, 2), col[1], 7)
-		if game.sim < pl.mflash:
-			draw_colored_polygon(PackedVector2Array([Vector2(32, -6), Vector2(48, 0), Vector2(32, 6)]), Color("#ffe27a"))
+		if pl.archer:
+			var pull: float = (game.sim - pl.draw) / 18.0 * 10 if pl.draw and game.sim - pl.draw < 18 else 0.0
+			draw_arc(Vector2(8, 0), 22, -1.2, 1.2, 20, Color("#6b4b2a"), 3.5, true)
+			draw_polyline(PackedVector2Array([Vector2(8 + 22 * cos(-1.2), 22 * sin(-1.2)), Vector2(8 - pull, 0), Vector2(8 + 22 * cos(1.2), 22 * sin(1.2))]), Color("#eeeeee"), 1)
+			if pull:
+				draw_line(Vector2(8 - pull, 0), Vector2(36 - pull, 0), Color("#7a5530"), 2)
+			draw_line(Vector2(-4, 0), Vector2(16, 0), col[1], 7)
+		else:
+			draw_line(Vector2(-8, 2), Vector2(32, 0), Color("#2c2833"), 4)
+			draw_line(Vector2(-10, 3), Vector2(0, 4), Color("#2c2833"), 7)
+			draw_line(Vector2(-4, -3), Vector2(12, 2), col[1], 7)
+			if game.sim < pl.mflash:
+				draw_colored_polygon(PackedVector2Array([Vector2(32, -6), Vector2(48, 0), Vector2(32, 6)]), Color("#ffe27a"))
 		draw_set_transform(Vector2.ZERO)
 	if pl.alert_at and game.sim - pl.alert_at < 70:
 		var Hw := e.wpt(Hd + Vector2(0, -30))
 		draw_colored_polygon(rr(Hw.x - 9, Hw.y - 14, 18, 24, 6), Color("#ff3b4e"))
 		draw_string(font, Hw + Vector2(-9, 6), "!", HORIZONTAL_ALIGNMENT_CENTER, 18, 20, Color.WHITE)
+
+
+func _draw_arrow(pos: Vector2, angle: float, length: float) -> void:
+	draw_set_transform(pos, angle)
+	draw_line(Vector2(-length, 0), Vector2.ZERO, Color("#7a5530"), 2)
+	draw_colored_polygon(PackedVector2Array([Vector2(0, -3), Vector2(7, 0), Vector2(0, 3)]), Color("#9aa3b5"))
+	draw_colored_polygon(PackedVector2Array([Vector2(-length, 0), Vector2(-length - 5, -4), Vector2(-length + 5, 0), Vector2(-length - 5, 4)]), Color("#e8e2d4"))
+	draw_set_transform(Vector2.ZERO)
 
 
 func _draw_rag(b: GBody) -> void:

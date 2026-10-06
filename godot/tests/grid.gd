@@ -9,7 +9,7 @@ const POWS := [0.3, 0.5, 0.7, 0.9]
 func _ready() -> void:
 	await TestUtil.boot(self)
 	var g: Game = Debug.game
-	for i in g.level_count():
+	for i in g.available_levels():
 		for w in ["grenade", "rocket"]:
 			if Levels.LEVELS[i].ammo.get(w, 0) <= 0:
 				continue

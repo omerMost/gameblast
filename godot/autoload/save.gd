@@ -28,7 +28,7 @@ func stars(i: int) -> int:
 	return int(prog.stars.get(str(i), 0))
 
 
-func record_win(i: int, n: int, level_count: int) -> void:
+func record_win(i: int, n: int, level_count: int, next := -1) -> void:
 	prog.stars[str(i)] = maxi(stars(i), n)
-	prog.unlocked = maxi(int(prog.unlocked), mini(level_count, i + 2))
+	prog.unlocked = maxi(int(prog.unlocked), next + 1 if next >= 0 else mini(level_count, i + 2))
 	save()

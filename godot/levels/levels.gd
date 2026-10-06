@@ -45,4 +45,21 @@ const LEVELS := [
 			["wall", 420, 410, 450, 650], ["wall", 800, 410, 830, 650], ["wall", 420, 410, 830, 450],
 			["enemy", 650, 650], ["enemy", 720, 650], ["barrel", 775, 650],
 		]},
+	null, null, null, null, null, null, null, null, null, null, null, null, null,
+	ArcherLevel.DATA, null,
+	{"name": "Hanging stone", "view": [0,240,920,480], "ammo": {"rocket":2,"grenade":2}, "par":1, "hint":"Shoot the rope", "build":[
+		["ground",0,190,560], ["ground",190,980,650], ["wall",820,300,840,650], ["wall",560,300,840,318],
+		["boulder",630,470,34,"stone"], ["hang",[630,318],"stone",[0,-34]],
+		["enemy",600,650], ["enemy",665,650], ["enemy",760,300,SH]]},
+	{"name":"Sky raft", "theme":"sky", "view":[0,190,940,530], "ammo":{"grenade":2,"rocket":3}, "par":3, "hint":"Pop the balloons or cut the ropes", "build":[
+		["ground",0,180,560], ["block",600,440,240,18,"wood","raft"], ["enemy",560,422], ["enemy",645,422],
+		["balloon",510,300,"raft",[-100,-9],5.6], ["balloon",600,285,"raft",[0,-9],5.6], ["balloon",690,300,"raft",[100,-9],5.6],
+		["plat",470,530,640,26], ["plat",670,730,640,26], ["tether",[500,640],"raft",[-110,9]], ["tether",[700,640],"raft",[110,9]],
+		["plat",780,900,560], ["enemy",840,560,SH]]},
+	{"name":"Bounce house", "view":[0,280,960,440], "ammo":{"grenade":3}, "par":2, "hint":"Bouncy walls send shots back", "build":[
+		["ground",0,190,560], ["ground",190,1000,650], ["wall",470,330,490,650], ["wall",490,500,800,520], ["pad",890,380,912,650],
+		["enemy",560,650], ["enemy",640,650], ["enemy",720,650]]},
+	{"name":"Black hole", "theme":"sky", "view":[0,170,940,530], "ammo":{"grenade":3,"rocket":2}, "par":2, "hint":"The black hole bends your shots", "wells":[[450,360,0.2]], "build":[
+		["ground",0,180,560], ["plat",680,900,560,30], ["wall",680,330,700,560], ["enemy",760,560], ["enemy",830,560],
+		["plat",360,520,650,30], ["enemy",420,650,SH]]},
 ]

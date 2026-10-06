@@ -9,6 +9,7 @@ extends Node2D
 ## Kills, damage and body removal never happen inside a contact callback: hit() only
 ## sets flags and defers work with later(), exactly like the prototype.
 
+signal sound_requested(key: String, gain: float)
 signal hud_changed
 signal ended(won: bool)          # the moment the level is decided
 signal show_result               # after the slow-mo delay (UI shows the card)
@@ -19,6 +20,8 @@ const SETTLE_TICKS := 30
 var rng := RandomNumberGenerator.new()   # physics-affecting randomness (seeded per level)
 var frng := RandomNumberGenerator.new()  # cosmetic randomness
 var world: Node2D
+var enemy_ai: EnemyAI
+var tricks: WorldMechanics
 var builder: LevelBuilder
 var level_idx := 0
 var L := {}
@@ -58,6 +61,8 @@ func _ready() -> void:
 	world = Node2D.new()
 	world.name = "World"
 	add_child(world)
+	enemy_ai = EnemyAI.new(self)
+	tricks = WorldMechanics.new(self)
 	frng.randomize()
 	Debug.game = self
 
@@ -81,10 +86,29 @@ func level_count() -> int:
 	return Levels.LEVELS.size()
 
 
+func available_levels() -> Array:
+	var result := []
+	for i in level_count():
+		if Levels.LEVELS[i] != null:
+			result.append(i)
+	return result
+
+
+func next_level(i: int) -> int:
+	for n in available_levels():
+		if n > i:
+			return n
+	return -1
+
+
 func start_level(i: int, data: Dictionary = {}) -> void:
+	if data.is_empty() and (i < 0 or i >= level_count() or Levels.LEVELS[i] == null):
+		push_error("Level %d has not been ported" % (i + 1))
+		return
 	for c in world.get_children():
 		world.remove_child(c)
 		c.queue_free()
+	enemy_ai.reset()
 	bodies.clear(); statics.clear(); enemies.clear(); projectiles.clear(); bullets.clear(); rags.clear()
 	queue.clear(); portals.clear(); particles.clear(); decals.clear()
 	if is_instance_valid(player) and not player.is_inside_tree():
@@ -96,6 +120,7 @@ func start_level(i: int, data: Dictionary = {}) -> void:
 	sim = 0; shots = 0; last_shot = -9999; last_move = 0; shake = 0.0; slow_until = 0
 	recoil = 0.0; flash_a = 0.0; hurt_a = 0.0; lose_why = "ammo"
 	Engine.time_scale = 1.0
+	tricks.reset(L)
 	builder = LevelBuilder.new(self)
 	builder.run(L.build)
 	builder._static(Vector2(-300, 1560), Vector2(600, 2000), "ground")   # solid ground behind the player
@@ -140,6 +165,8 @@ func in_world(b) -> bool:
 func remove_body(b) -> void:
 	if not is_instance_valid(b) or b.removed:
 		return
+	enemy_ai.arrows.erase(b)
+	tricks.removed(b)
 	b.removed = true
 	bodies.erase(b); projectiles.erase(b); bullets.erase(b); rags.erase(b); enemies.erase(b)
 	if b.get_parent():
@@ -206,6 +233,7 @@ func _physics_process(_dt: float) -> void:
 		var bp: Vector2 = bl.global_position
 		if sim - bl.p.born > 150 or bp.y > 1600 or bp.x < -400 or bp.x > 2000:
 			remove_body(bl)
+	enemy_ai.update_arrows()
 	if not queue.is_empty():
 		var due := []
 		var rest := []
@@ -227,7 +255,7 @@ func _physics_process(_dt: float) -> void:
 	_update_rag_bleeding()
 	var moving := false
 	for b in bodies.duplicate():
-		if b.linear_velocity.length() / C.STEP > 0.35:
+		if b.kind != "balloon" and b.linear_velocity.length() / C.STEP > 0.35:
 			moving = true
 		if b.global_position.y > 2600:
 			remove_body(b)
@@ -240,6 +268,7 @@ func _physics_process(_dt: float) -> void:
 ## Matter 'beforeUpdate': forces for the coming physics step, and cache pre-step
 ## velocities so hit() can measure impact speed like Matter's collisionStart does.
 func _before_update() -> void:
+	tricks.before_update()
 	for e in enemies:
 		if not e.p.alive or not in_world(e):
 			continue
@@ -271,7 +300,7 @@ func _result_if(s: String) -> void:
 	if state != s:
 		return
 	if s == "won":
-		Save.record_win(level_idx, stars_for(shots), level_count())
+		Save.record_win(level_idx, stars_for(shots), level_count(), next_level(level_idx))
 	show_result.emit()
 
 
@@ -318,13 +347,16 @@ func _mass(n) -> float:
 func hit(A: GBody, B: Node) -> void:
 	if A.removed or not is_instance_valid(B):
 		return
+	tricks.contact(A, B)
 	var k := A.kind
+	if k == "balloon":
+		return
 	if k == "rocket":
 		if not A.p.done:
 			A.p.done = true
 			later(0, _rocket_hit.bind(A))
 		return
-	if k == "bullet":
+	if k == "bullet" or k == "arrow":
 		if not A.p.done:
 			A.p.done = true
 			later(0, missile_hit.bind(A, B, false))
@@ -332,11 +364,13 @@ func hit(A: GBody, B: Node) -> void:
 	if settling:
 		return
 	var bk := _kind(B)
-	if bk == "bullet":
+	if bk == "bullet" or bk == "arrow":
 		return
 	var rv := (A.prev_v - _vel(B)).length() / C.STEP
 	var b_static := B is StaticBody2D
 	if k == "grenade":
+		if rv > 3:
+			sound_requested.emit("clink", minf(1, rv / 12))
 		return
 	if k == "enemy" and A.p.alive and not A.p.dying:
 		var deadly := false
@@ -460,6 +494,7 @@ func kill(e: GBody, ev: Vector2, gib: bool) -> void:
 	if not e.p.alive:
 		return
 	e.p.alive = false
+	sound_requested.emit("splat" if gib else "pop", 1.0)
 	Debug.log_event("enemy_killed", {"ev": ev, "gib": gib, "rot": e.rotation, "y": e.global_position.y})
 	if in_world(e):
 		make_ragdoll(e, ev, gib)
@@ -496,6 +531,7 @@ func kill_player(ev: Vector2, gib: bool) -> void:
 	player.p.hp = 0
 	Debug.log_event("player_died", {"cause": player.p.cause})
 	make_ragdoll(player, ev, gib)
+	sound_requested.emit("splat" if gib else "pop", 1.0)
 	hurt_a = 0.8
 	if state == "play":
 		state = "lost"
@@ -515,9 +551,11 @@ func explode(p: Vector2, R: float, power: float, src, cause: String) -> void:
 		remove_body(src)
 	Debug.log_event("explode", {"x": p.x, "y": p.y, "power": power, "cause": cause})
 	fx_explosion(p, R, power)
+	sound_requested.emit("boom", power / 40.0)
 	shake = minf(20, shake + power * 0.45)
 	if power >= C.P_BAR:
 		flash_a = maxf(flash_a, 0.35)
+	tricks.blast(p, R)
 	var space := get_world_2d().direct_space_state
 	for b in bodies.duplicate():
 		if not in_world(b):
@@ -550,6 +588,9 @@ func explode(p: Vector2, R: float, power: float, src, cause: String) -> void:
 				damage_player(dmg, dv, null, cause if cause != "" else "self")
 				if dying:
 					continue
+		elif k == "balloon":
+			later(0, tricks.pop.bind(b))
+			continue
 		elif k == "barrel":
 			if not b.p.triggered and f > 0.1:
 				trigger(b)
@@ -612,19 +653,27 @@ func missile_hit(ms: GBody, B, shield: bool) -> void:
 		damage_player(22 if is_arrow else 16, dir * 3, p, "arrow" if is_arrow else "bullet")
 		if in_world(B):
 			B.apply_impulse(dir * 0.004 * C.FORCE_IMPULSE, p - B.global_position)
+		if is_arrow and B.p.alive:
+			enemy_ai.stick_arrow(B, p, dir.angle())
 		return
 	if k == "enemy" and B.p.alive and not shield:
 		kill(B, dir * 4, false)
 		return
 	if k == "rag":
 		blood_burst(p.x, p.y, dir.x, dir.y, 6, 0.8, B.p.col)
+		if is_arrow:
+			enemy_ai.stick_arrow(B, p, dir.angle())
 		return
-	if k == "barrel" and not B.p.triggered:
+	if k == "barrel" and not B.p.triggered and not is_arrow:
 		trigger(B)
+	if is_arrow:
+		enemy_ai.stick_arrow(B, p, dir.angle())
+		return
 	for i in 7:
 		var a := atan2(-dir.y, -dir.x) + frnd(-1, 1)
 		var s := frnd(150, 400)
 		particles.append({"t": "spark", "x": p.x, "y": p.y, "vx": cos(a) * s, "vy": sin(a) * s, "g": 900.0, "life": 0.0, "max": frnd(0.15, 0.35)})
+	sound_requested.emit("thunk" if is_arrow else ("clang" if shield else "ric"), 1.0)
 	particles.append({"t": "puff", "x": p.x, "y": p.y, "vx": 0.0, "vy": -20.0, "r": 5.0, "life": 0.0, "max": 0.3})
 
 
@@ -657,6 +706,9 @@ func _update_enemies() -> void:
 			continue
 		var pl: Dictionary = e.p
 		var S := enemy_shoulder(e)
+		if pl.archer:
+			enemy_ai.update_archer(e, alert, player.wpt(player.loc.torso))
+			continue
 		if pl.shooter:
 			pl.aim_a += C.norm_a((H2 - S).angle() - pl.aim_a) * 0.12
 		if not alert:
@@ -664,6 +716,7 @@ func _update_enemies() -> void:
 		if pl.next == 0 and pl.shooter:
 			pl.next = sim + rng.randi_range(50, 119)
 			pl.alert_at = sim
+			sound_requested.emit("alert", 1.0)
 		if absf(C.norm_a(e.rotation)) > 0.4 or sim < pl.next:
 			continue
 		if pl.shooter:
@@ -674,6 +727,7 @@ func _update_enemies() -> void:
 			var dir := Vector2.from_angle(a)
 			var m := S + dir * 36
 			_spawn_bullet(m, dir * 17)
+			sound_requested.emit("shot", 1.0)
 			pl.mflash = sim + 4
 			particles.append({"t": "fire", "x": m.x, "y": m.y, "vx": dir.x * 60, "vy": dir.y * 60, "r": 6.0, "life": 0.0, "max": 0.1})
 			particles.append({"t": "smoke", "x": m.x, "y": m.y, "vx": dir.x * 30, "vy": -20.0, "r": 5.0, "life": 0.0, "max": 0.5})
@@ -714,13 +768,14 @@ func portal_at(p: Vector2) -> int:
 
 
 func _update_world_tricks() -> void:
+	tricks.update()
 	var t := sim * C.DT / 1000.0
 	for e in portals:
 		if e.mv:
 			e.y = e.y0 + sin(t * e.mv.spd) * e.mv.amp
 	if portals.is_empty():
 		return
-	for b in projectiles + bullets:
+	for b in projectiles + bullets + enemy_ai.arrows:
 		if not in_world(b):
 			continue
 		var i := portal_at(b.global_position)
@@ -732,7 +787,9 @@ func _update_world_tricks() -> void:
 			b.global_position = to
 			b.linear_velocity = v
 			b.p.in_p = portals[i].partner
+			b.p.rope_prev = to
 			fx_portal(portals[i]); fx_portal(o)
+			sound_requested.emit("warp", 1.0)
 		elif i < 0:
 			b.p.in_p = -1
 
@@ -797,6 +854,7 @@ func fire() -> bool:
 	projectiles.append(b)
 	ammo[weapon] -= 1
 	shots += 1
+	sound_requested.emit("launch", 1.0)
 	last_shot = sim
 	recoil = 1.0
 	for i in 6:
@@ -827,6 +885,10 @@ func predict() -> Array:
 	q.collision_mask = C.L_STATIC | C.L_BODY | C.L_ENEMY
 	q.exclude = [player.get_rid()]
 	for i in 190:
+		var acc := tricks.acceleration(Vector2(x, y))
+		vx += acc.x; vy += acc.y
+		if tricks.swallowed(Vector2(x, y)):
+			break
 		vy += g
 		x += vx
 		y += vy

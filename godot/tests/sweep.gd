@@ -19,7 +19,7 @@ func _ready() -> void:
 			only = int(a.split("=")[1]) - 1
 	var fails := []
 	var t0 := Time.get_ticks_msec()
-	for i in g.level_count():
+	for i in g.available_levels():
 		if only >= 0 and i != only:
 			continue
 		var res: Dictionary = await solve(i)

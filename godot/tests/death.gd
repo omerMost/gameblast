@@ -144,4 +144,4 @@ func _ready() -> void:
 	for f in fails:
 		print("  FAIL ", f)
 	print("DEATH RESULT: ", "PASS" if fails.is_empty() else "FAIL")
-	get_tree().quit(0 if fails.is_empty() else 1)
+	await TestUtil.finish(self, 0 if fails.is_empty() else 1)

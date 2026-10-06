@@ -20,7 +20,7 @@ func _ready() -> void:
 	Save.prog.blood = true
 	main.hud.show_title()
 	var toggle: Button
-	for child in main.hud.card_box.get_children():
+	for child in main.hud.card_box.find_children("*", "Button", true, false):
 		if child is Button and child.text.begins_with("Blood:"):
 			toggle = child
 	check(toggle != null, "title has a blood toggle")
@@ -132,4 +132,4 @@ func _ready() -> void:
 	for failure in fails:
 		print("  FAIL ", failure)
 	print("FX RESULT: ", "PASS" if fails.is_empty() else "FAIL")
-	get_tree().quit(0 if fails.is_empty() else 1)
+	await TestUtil.finish(self, 0 if fails.is_empty() else 1)

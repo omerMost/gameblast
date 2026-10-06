@@ -43,3 +43,8 @@ One section per layer. For each choice: what we picked + one-line rationale. Res
 _(Things that were on the table and lost. Each entry: what it was, why it lost. Saves future-you from re-litigating.)_
 
 - **Capacitor wrapper, Expo/React Native, Unity, Phaser.** All lost to Godot 4 for the native app. See ADR 0002.
+
+## Stage-2 audio and verification
+
+- Godot audio: generated mono 22.05 kHz AudioStreamWAV cached in RangerAudio, AudioStreamPolyphonic buses (32 SFX / 64 music voices), 112 BPM prototype score, real-time duck hold/envelope. Approximate filters and discrete echo repeats preserve score/effect timings; audition remains outstanding.
+- Tests refresh Godot imports before running and reject general engine ERROR lines as well as script failures. Physics bots skip repeated canvas redraws; screenshot scenes opt in. Scene teardown gives the async audio mixer 60 ms to release voices. Stored real-input shots use passive settling on levels 1–5 and active firing on hostile levels; a bounded ammo/angle sweep can replace a chaotic replay (ADR 0006).

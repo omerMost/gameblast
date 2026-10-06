@@ -5,4 +5,7 @@ shooters
 selfharm
 death
 fx
-sweep
+bot
+world_mechanics
+audio
+archer
