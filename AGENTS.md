@@ -7,8 +7,11 @@ Author: Omer Evan.
 ## Repo layout
 
 - `mobile/` — the mobile app ("Blast Ranger", Expo). Icons live in `mobile/assets/images/` (regenerate: `node scripts/generate-icons.js`).
+- `prototype/` — the playable game: a single-file HTML5 + Matter.js web build with 40 levels (`prototype/index.html`). Copied from the claude.ai artifact on 2026-10-06. Run it with the `prototype` config in `.claude/launch.json` (port 8080).
+- `godot/` — (planned) the Godot 4 port that will become the native Android app (ADR 0002). Built stage by stage by the `godot-porter` agent.
 - `site/` — the web surface (marketing, app, docs — whatever it turns out to be; surface scaffold, fill in the stack when it is chosen).
 - `context/` — the project vault (state, decisions, sessions, backlog). Project-wide, not per-surface.
+- `.claude/agents/` — the agent team. `.claude/settings.json` sets `"agent": "root-orchestrator"`, so every session runs as the **Root Orchestrator**. It plans the work, hands tasks to `gameplay-engineer`, `level-designer`, `qa-playtester` and `godot-porter`, checks their results, and owns the vault. Subagents never write to `context/` and never commit.
 - `scripts/generate-icons.js` — icon generator (committed on purpose; re-run after editing the mark).
 
 ## Installed knowledge packs

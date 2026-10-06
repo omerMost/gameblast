@@ -1,31 +1,27 @@
 <!--
 What this file answers: the happy-path walkthrough of the project's primary flow, from user input (or request) to final output.
 When to update: any change that alters the sequence, adds a step, or changes where a step runs. Same turn as the code change.
-Example flow for an app: "1. user taps GALLERY → 2. expo-image-picker returns base64 → 3. /processing calls Claude → 4. /result renders the parsed event."
-Leave this file blank during install. Fill it in after the first real code-changing session — the real flow often differs from the imagined one, and writing it prematurely locks in fiction.
 -->
 
 # Data flow
 
-One end-to-end walk of the primary flow. If there are several, pick the one that most defines the product and walk *that* one. Document secondary flows only when they diverge in interesting ways.
+## Primary flow: aim → fire → blast → level result (`prototype/index.html`)
 
-## Primary flow: <name the flow>
-
-_(e.g. "Capture → extract → save" for an app; "Request → handlers → response" for a service; "Input → transform → output" for a pipeline.)_
-
-1. <DESCRIBE step>
-2. <DESCRIBE step>
-3. <DESCRIBE step>
-4. ...
+1. The player picks a level, and `startLevel(i)` calls `build(i)`. That creates a new Matter engine and runs `LEVELS[i].build(makeBuilder())`. It then spawns the player, settles the world for 80 steps, and zeroes all velocities so structures start at rest.
+2. The player drags back on the canvas, which sets `aim` (direction and power). `predict()` draws the dotted path, and that path follows portals and bends around black holes.
+3. On release, `fire()` checks `canFire()` (state is `play`, the player is alive, no projectile is in flight, ammo is left) and spawns a grenade or rocket with `launchVel()`.
+4. `frame()` advances the simulation with `step()` at a fixed 60 Hz. During each step:
+   - `beforeUpdate` applies the extra forces (rocket lift, black-hole pull, balloon lift, enemy upright/hover).
+   - `collisionStart` → `hit()` defers kills and damage with `later()`.
+   - Then come grenade fuses, dragon mouth gulps, enemy AI and the `later()` queue.
+5. `explode()` applies a mass-aware, distance-falloff impulse (blocked by stone and walls), damages the player, cuts ropes, sets off barrels, breaks blocks and plays FX/SFX.
+6. `checkEnd()`: if every enemy is dead the level is **won**; stars come from shots used against par, and progress is saved to localStorage. If the player hits 0 HP or falls off-map, or runs out of ammo with no movement left, the level is **lost** and the death screen shows the cause from `CAUSES`.
 
 ## Failure paths
 
-_(Where does this flow break? What errors can surface at each step, and what's the user-visible behavior when they do?)_
-
-- **Step N (<what fails>)** — <DESCRIBE> → user sees <DESCRIBE>.
+- **Missing vendored files** (`vendor/matter.min.js` not served next to `index.html`): `Matter` is undefined and the game doesn't start. Missing `fonts/*.woff2` only makes the text fall back to the system font stacks. The game doesn't need internet.
+- **localStorage blocked** (private mode): every read and write is wrapped in try/catch, so progress just isn't saved.
 
 ## Trust boundaries
 
-_(Which steps validate input, which ones trust their caller. The rule in most projects: validate at the system boundary (user input, external API responses), trust everything in between. Document where those boundaries are.)_
-
-<DESCRIBE>
+None. It's a client-only game with no network input. All scripts and fonts are served from the same origin.
