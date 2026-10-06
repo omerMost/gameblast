@@ -8,6 +8,15 @@ func _ready() -> void:
 		ok=ok and g.next_level(i)==(i+1 if i<39 else -1)
 		Save.record_win(i,3,g.level_count(),g.next_level(i))
 		ok=ok and Save.prog.unlocked==mini(40,i+2) and Save.stars(i)==3
+	await Debug.start_level(2) # Both weapons, original ammo.
+	main.hud.refresh()
+	for w in ["grenade", "rocket"]:
+		ok = ok and main.hud.w_btns[w].icon != null
+		main.hud.w_btns[w].pressed.emit()
+		ok = ok and g.weapon == w
+	var style = main.hud.w_btns.rocket.get_theme_stylebox("normal")
+	main.hud.refresh()
+	ok = ok and main.hud.w_btns.rocket.get_theme_stylebox("normal") == style
 	main.hud.show_levels()
 	await get_tree().process_frame
 	await get_tree().process_frame

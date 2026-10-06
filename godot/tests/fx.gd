@@ -89,6 +89,7 @@ func _ready() -> void:
 	var edge: Vector2 = (ground.poly[0] + ground.poly[1]) / 2
 	var clipped: Array = main.view.decal_polygons(edge, Vector2(20, 10), 0.2)
 	check(not clipped.is_empty(), "decal crossing platform edge is clipped")
+	check(main.view.valid_decal_polygons(edge, Vector2(20, 10), 0.2) == clipped, "validated decal cache preserves clipped geometry")
 	for polygon in clipped:
 		for point in polygon:
 			check(Geometry2D.is_point_in_polygon(point, ground.poly), "clipped decal stays on ground")

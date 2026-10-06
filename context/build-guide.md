@@ -44,3 +44,16 @@ All40 definitions are generated from prototype declarations: run `node scripts/e
 Use `later_body` for a typed delayed callback whose body may die during its windup; normal later remains for coordinate-only callbacks. Idle stability excludes bullets/arrows/nades/flames from scenery motion. Knights/hovering bosses/mobile bridges remain bounded; L29/33/35/39 source-alerted attacks produce explicit expected HP78/90/73/84 at300ticks. Player and all enemies must survive with named causes and finite transforms.
 
 On macOS, screenshot diagnostics awaiting RenderingServer.frame_post_draw can stall while the Godot window is occluded even though physics continues. Keep the diagnostic window visible (`--always-on-top`, activate Godot) and use a watchdog; do not interpret an occluded screenshot wait as a game freeze. Fully visible L40 aim/post-shot rendering completed cleanly in7.1s.
+
+
+## Android debug export (stage4)
+
+Run `./scripts/export-android.sh` from the checkout. Output: `godot/build/blast-ranger-debug.apk` (ignored). `GODOT_BIN` can override the default Homebrew executable. The matching4.7.2 templates and editor Android SDK/JDK/debug-keystore settings must already exist; this script installs nothing.
+
+Verified machine: JDK17.0.20.1 at `/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home`, SDK `~/Library/Android/sdk`, platform36, build-tools36.1.0, prebuilt templates4.7.2.stable. Export uses ARM64, minSDK24/targetSDK36, sensor-landscape, immersive mode and keep-awake. No network permission, release signing, Gradle plugins or NDK required. The local debug key and passwords are never stored in the preset or Git.
+
+Install: `~/Library/Android/sdk/platform-tools/adb install -r godot/build/blast-ranger-debug.apk`. Launch with `adb shell am start -n com.omerevan.blastranger/com.godot.game.GodotAppLauncher` (the underlying GodotApp activity is not exported). Keep the existing app data; do not uninstall to update. The device must authorize USB debugging.
+
+`adb logcat --pid=<app-pid> -s godot AndroidRuntime` shows errors and debug-only `BR_PERF` samples. FPS is averaged over5seconds; worst_frame_ms includes pauses/startup and is not a GPU timing measurement. Android renders at most60FPS; physics stays60Hz. Decal clipping/validity is cached once and weapon styles reuse resources. The intentional win slow-motion remains unchanged.
+
+App pictures: launcher copies come from `mobile/assets/images/`; picker SVGs live under `godot/assets/images/`. After regenerating the launcher mark, refresh those copies. Test resources are excluded from APK exports.

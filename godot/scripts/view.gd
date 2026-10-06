@@ -118,14 +118,19 @@ func decal_polygons(center: Vector2, radius: Vector2, angle: float) -> Array:
 	return clipped
 
 
+func valid_decal_polygons(center: Vector2, radius: Vector2, angle: float) -> Array:
+	# Validate once with clipping; neither the stain nor its platform moves.
+	return decal_polygons(center, radius, angle).filter(func(polygon):
+		return not Geometry2D.triangulate_polygon(polygon).is_empty())
+
+
 func _draw_decal_ellipse(center: Vector2, radius: Vector2, angle: float, color: Color, cache: Dictionary, key: String) -> void:
 	# Decals and static platforms do not move within a level. Clip once, then reuse
 	# the polygons; repeated geometry intersections made headless bot searches slow.
 	if not cache.has(key):
-		cache[key] = decal_polygons(center, radius, angle)
+		cache[key] = valid_decal_polygons(center, radius, angle)
 	for polygon in cache[key]:
-		if not Geometry2D.triangulate_polygon(polygon).is_empty():
-			draw_colored_polygon(polygon, color)
+		draw_colored_polygon(polygon, color)
 
 
 func _draw_decals() -> void:

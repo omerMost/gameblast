@@ -30,6 +30,8 @@ var hp_shakes := 0             # how many times the chip shook (tests)
 var result_title := ""         # text of the last result card (tests read these, not pixels)
 var result_text := ""
 var w_btns := {}
+var weapon_styles := {}
+var weapon_selected := {}
 var hint: Label
 var fx_layer: Control
 var dim: ColorRect
@@ -94,6 +96,11 @@ func _ready() -> void:
 	sound.tooltip_text = "Mute / unmute sound"
 	top.add_child(sound)
 
+	weapon_styles = {
+		"selected": _box(ACCENT, 20, 5, 16, 8),
+		"available": _box(CHIP, 20, 5, 16, 8),
+		"disabled": _box(Color(CHIP, 0.45), 20, 5, 16, 8),
+	}
 	# --- weapon bar
 	var wbar := HBoxContainer.new()
 	wbar.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
@@ -106,6 +113,9 @@ func _ready() -> void:
 	for w in ["grenade", "rocket"]:
 		var b := Button.new()
 		b.focus_mode = Control.FOCUS_NONE
+		b.icon = load("res://assets/images/" + w + ".svg")
+		b.add_theme_constant_override("icon_max_width", 36)
+		b.add_theme_constant_override("h_separation", 8)
 		b.add_theme_font_override("font", disp)
 		b.add_theme_font_size_override("font_size", 20)
 		b.custom_minimum_size = Vector2(170, 56)
@@ -384,12 +394,14 @@ func refresh() -> void:
 		b.text = "%s  ×%d" % [w.capitalize(), n]
 		b.disabled = n == 0
 		var sel: bool = game.weapon == w and n > 0
-		var bg := ACCENT if sel else CHIP
+		if weapon_selected.get(w, null) == sel:
+			continue
+		weapon_selected[w] = sel
 		var fc := Color.WHITE if sel else INK
 		for c in ["font_color", "font_hover_color", "font_pressed_color", "font_disabled_color"]:
 			b.add_theme_color_override(c, fc if c != "font_disabled_color" else Color(INK, 0.45))
 		for st in ["normal", "hover", "pressed", "disabled"]:
-			b.add_theme_stylebox_override(st, _box(bg if st != "disabled" else Color(CHIP, 0.45), 20, 5, 16, 8))
+			b.add_theme_stylebox_override(st, weapon_styles["disabled" if st == "disabled" else ("selected" if sel else "available")])
 
 
 func _draw_fx() -> void:

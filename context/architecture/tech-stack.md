@@ -9,13 +9,14 @@ Seed this file during install (don't leave blank) — stack choices are usually 
 
 One section per layer. For each choice: what we picked + one-line rationale. Resist writing prose — this is a lookup table, not an essay.
 
-> Status 2026-10-07: the prototype is still the spec. The Godot port has stage2 verified on its run branch; stage3 adds all40 original levels and bot proofs on `codex/stage3-content`. Android toolchain is not installed yet.
+> Status 2026-10-07: the prototype is still the spec. The Godot port has stage2 verified on its run branch; stage3 adds all40 original levels and bot proofs on `codex/stage3-content`. Stage4 builds a signed Android debug APK on `codex/stage4-android`; physical-device touch, rendering and saved progress have been verified.
 
 ## Runtime / language
 
 - Prototype (`prototype/index.html`): vanilla JavaScript in the browser, one file, no build step. Matter.js 0.19.0 is vendored at `prototype/vendor/matter.min.js`, and the fonts (Lilita One 400, Nunito variable 800–900, latin woff2) are in `prototype/fonts/` with local `@font-face` rules. It needs no network (source URLs are in `prototype/README.md`).
 - App: **Godot 4.7.2.stable.official (ed1daf0bf) + GDScript** in `godot/`, Android first (ADR 0002). Installed with `brew install --cask godot` (`/Applications/Godot.app`, CLI `/opt/homebrew/bin/godot`). Renderer `gl_compatibility` (widest Android support), built-in GodotPhysics2D at 60 ticks with 16 solver iterations, gravity 1000 px/s². Physics-parity rules are in ADR 0006.
-- Not installed yet (stage 4): Godot export templates, JDK 17, Android SDK/NDK, debug keystore.
+- Android export: Godot4.7.2 prebuilt APK templates, Homebrew OpenJDK17.0.20.1, SDK platform36/build-tools36.1.0/platform-tools, editor-managed debug keystore. SDK: `~/Library/Android/sdk`; JDK: `/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home`. No NDK or Gradle build is required for this prebuilt-template export (ADR0010). Credentials stay in local editor settings.
+- Android renderer is capped at60FPS (physics stays60Hz), with ETC2/ASTC imports enabled. Debug builds log five-second frame intervals and effect counts for device diagnosis.
 
 ## UI / presentation layer
 

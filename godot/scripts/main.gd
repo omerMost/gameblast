@@ -8,10 +8,15 @@ var cam: Camera2D
 var hud: Hud
 var bg: Background
 var audio: RangerAudio
+var perf_time := 0.0
+var perf_frames := 0
+var perf_worst_ms := 0.0
 var drag = null   # {x0, y0, x, y} in viewport (virtual) pixels while aiming
 
 
 func _ready() -> void:
+	if OS.get_name() == "Android":
+		Engine.max_fps = 60 # Match physics; avoid redrawing twice per tick on 120 Hz phones.
 	var bl := CanvasLayer.new()
 	bl.layer = -1
 	add_child(bl)
@@ -77,6 +82,15 @@ func open_levels() -> void:
 
 
 func _process(_dt: float) -> void:
+	if OS.get_name() == "Android" and OS.is_debug_build():
+		perf_time += _dt
+		perf_frames += 1
+		perf_worst_ms = maxf(perf_worst_ms, _dt * 1000)
+		if perf_time >= 5.0:
+			print("BR_PERF fps=%.1f worst_frame_ms=%.1f bodies=%d particles=%d decals=%d" % [perf_frames / perf_time, perf_worst_ms, game.bodies.size(), game.particles.size(), game.decals.size()])
+			perf_time = 0.0
+			perf_frames = 0
+			perf_worst_ms = 0.0
 	_layout()
 	view.drag_active = drag != null
 
