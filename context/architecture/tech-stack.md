@@ -48,3 +48,5 @@ _(Things that were on the table and lost. Each entry: what it was, why it lost. 
 
 - Godot audio: generated mono 22.05 kHz AudioStreamWAV cached in RangerAudio, AudioStreamPolyphonic buses (32 SFX / 64 music voices), 112 BPM prototype score, real-time duck hold/envelope. Approximate filters and discrete echo repeats preserve score/effect timings; audition remains outstanding.
 - Tests refresh Godot imports before running and reject general engine ERROR lines as well as script failures. Physics bots skip repeated canvas redraws; screenshot scenes opt in. Scene teardown gives the async audio mixer 60 ms to release voices. Stored real-input shots use passive settling on levels 1–5 and active firing on hostile levels; a bounded ammo/angle sweep can replace a chaotic replay (ADR 0006).
+
+- Stage2 registers quantitative knight/jet/boss suites and fourteen original-numbered levels. Flame missiles use RigidBody2D movement plus Area2D sensors; no extra dependencies or installs.

@@ -12,3 +12,4 @@ archer
 
 knight
 jet
+bosses

@@ -6,6 +6,8 @@ When you complete a backlog item, move its bullet from `backlog.md` to here in t
 
 ---
 
+- 2026-10-07 — Godot stage2 overnight north star complete on run branch: all enemies/features and original introduction levels, fourteen available levels cleared within original ammo. Titans/dragons preserve source armor, weakpoints, movement, timing and sensor fire. Morning page/vault refreshed; main merge awaits user review.
+
 - 2026-10-07 — Stage-2 step 5: jetpack hover/compound pack, lob grenades, fuse110/toss10, current-position warning ring and pack explosion14ticks after death. Original L25 clears in two rockets (par3); twelve available levels.
 
 - 2026-10-07 — Stage-2 step 4: knights and original L20, frontal shield and rear/overhead bypass, sword delay/cooldown, run/jump/climb and physical dropped weapons. Eleven levels verified with real-input clearance. Content validator now rejects malformed opcodes/geometry/references; enemy missiles follow prototype balloon collision filtering.

@@ -61,6 +61,7 @@ func _draw() -> void:
 			"grenade", "nade": _draw_grenade(b)
 			"rocket": _draw_rocket(b)
 			"bullet": _draw_bullet(b)
+			"flame": _draw_flame(b)
 			"arrow": _draw_arrow(b.global_position, b.linear_velocity.angle(), 22)
 	for entry in game.enemy_ai.stuck:
 		var pose: Dictionary = game.enemy_ai.stuck_pose(entry)
@@ -243,6 +244,9 @@ func _head(pos: Vector2, r: float, c1: Color, c2: Color) -> void:
 
 
 func _draw_enemy(e: GBody) -> void:
+	if e.p.titan or e.p.dragon:
+		_draw_boss(e)
+		return
 	var pl := e.p
 	var Lc := e.loc
 	var T: Vector2 = Lc.torso
@@ -443,3 +447,68 @@ func _draw_particles() -> void:
 				var a := 1.0 if k < 0.7 else (1 - k) / 0.3
 				draw_string_outline(font, pos + Vector2(-60, 0), p.text, HORIZONTAL_ALIGNMENT_CENTER, 120, 34, 6, Color(Color("#2a2140"), a))
 				draw_string(font, pos + Vector2(-60, 0), p.text, HORIZONTAL_ALIGNMENT_CENTER, 120, 34, Color(p.c, a))
+
+
+func _draw_boss(e: GBody) -> void:
+	var pl := e.p
+	var col := game.char_colors(e)
+	var h: Vector2 = e.loc.head
+	var b: Vector2 = e.loc.torso
+	var t := float(game.sim)
+	draw_set_transform(e.global_position,e.rotation)
+	if pl.titan:
+		var f: Vector2 = e.loc.feet
+		var c: Vector2 = e.loc.core
+		var run := sin(e.position.x*0.07)*14 if absf(e.linear_velocity.x/C.STEP)>0.4 else 0.0
+		draw_line(b+Vector2(-14,30),f+Vector2(-16+run,-8),col[1],20,true)
+		draw_line(b+Vector2(14,30),f+Vector2(16-run,-8),col[1],20,true)
+		draw_rect(Rect2(f+Vector2(-34+run,-10),Vector2(30,14)),Color("#3d3a4f"))
+		draw_rect(Rect2(f+Vector2(4-run,-10),Vector2(30,14)),Color("#3d3a4f"))
+		draw_line(b+Vector2(26,-26),b+Vector2(34,20),col[1],18,true)
+		draw_rect(Rect2(b-Vector2(33,37),Vector2(66,74)),col[0])
+		draw_rect(Rect2(b+Vector2(-30,-34),Vector2(60,16)),col[1])
+		draw_rect(Rect2(b+Vector2(-28,20),Vector2(56,12)),col[1])
+		draw_circle(c,30,Color(1,0.55,0.15,(0.6+0.4*sin(t*0.2))*0.25))
+		draw_circle(c,15,Color("#5a3a10")); draw_circle(c,13,Color("#ffb347")); draw_circle(c,6,Color("#fff3c4"))
+		draw_circle(h,19,col[2])
+		draw_rect(Rect2(h+Vector2(-20,-6),Vector2(22,9)),Color("#3d3a4f"))
+		for x in [-13,-5]: draw_circle(h+Vector2(x,-2),2.5,Color("#ff4040"))
+		var sw: float = (game.sim-pl.get("swing",-999))/22.0
+		var raise := sin(minf(1,sw*1.3)*PI) if sw>=0 and sw<1 else 0.0
+		var start := b+Vector2(-22,-26)
+		var arm := Vector2(0,54).rotated(0.25-raise*2.6)
+		draw_line(start,start+arm,col[0],18,true); draw_circle(start+arm,13,Color("#3d3a4f"))
+	else:
+		var mouth: Vector2 = e.loc.mouth
+		var tail: Vector2 = e.loc.tail
+		var open := minf(1,(game.sim-pl.bt)/20.0) if pl.breath=="charge" else (1.0 if pl.breath=="fire" else 0.0)
+		var flap := sin(t*0.18+pl.ph)
+		for dx in [18,-2]:
+			# Canvas tolerates crossing wing vertices at low flap; Godot needs triangles.
+			var wing := [b+Vector2(dx-20,-12),b+Vector2(dx+5,-60-flap*38),b+Vector2(dx+55,-48-flap*44),b+Vector2(dx+40,-14)]
+			var color := Color("#24652e") if dx==18 else Color("#3b9147")
+			for tri in [[0,1,2],[0,2,3]]:
+				draw_colored_polygon(PackedVector2Array([wing[tri[0]],wing[tri[1]],wing[tri[2]]]),color)
+		draw_line(b+Vector2(35,0),tail+Vector2(38,-10),col[1],14,true)
+		draw_colored_polygon(PackedVector2Array([tail+Vector2(34,-16),tail+Vector2(52,-16),tail+Vector2(40,-2)]),col[1])
+		draw_set_transform(e.global_position,e.rotation,Vector2(1,0.44))
+		draw_circle(Vector2(b.x,b.y/0.44),50,Color("#ff7a5a") if pl.breath=="gulp" and game.sim%8<4 else col[0])
+		draw_set_transform(e.global_position,e.rotation)
+		draw_line(b+Vector2(-30,-8),h+Vector2(8,4),col[0],16,true)
+		draw_circle(h,18,col[0])
+		if open>0: draw_circle(mouth,34,Color(1,0.5,0.1,open*0.3))
+		draw_colored_polygon(PackedVector2Array([h+Vector2(-6,-10),h+Vector2(-34,-4-open*6),h+Vector2(-33,3-open*4),h+Vector2(-6,4)]),col[0])
+		var jaw := h+Vector2(2,5)
+		draw_line(jaw,jaw+Vector2(-32,5).rotated(open*0.55),col[1],9,true)
+		for i in 3: draw_circle(jaw+Vector2(-26+i*8,0).rotated(open*0.55),2,Color.WHITE)
+		if open>0: draw_circle(mouth+Vector2(4,0),6*open,Color("#3a0a0a"))
+		draw_circle(h+Vector2(-4,-5),4,Color("#ffd23f")); draw_line(h+Vector2(-4,-8),h+Vector2(-4,-2),Color.BLACK,2)
+		draw_colored_polygon(PackedVector2Array([h+Vector2(6,-12),h+Vector2(20,-24),h+Vector2(12,-9)]),Color("#e8e2d4"))
+	draw_set_transform(Vector2.ZERO)
+func _draw_flame(fl: GBody) -> void:
+	var age: float = (game.sim-fl.p.born)/75.0
+	var r := 7+age*14
+	var alpha := maxf(0,1-age*0.9)
+	draw_circle(fl.global_position,r*1.3,Color(0.89,0.33,0.16,alpha*0.55))
+	draw_circle(fl.global_position,r,Color(1,0.67,0.23,alpha))
+	draw_circle(fl.global_position-Vector2.ONE,r*0.5,Color(1,0.95,0.63,alpha))

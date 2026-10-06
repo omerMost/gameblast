@@ -32,3 +32,7 @@ After each step, update STATE, affected architecture documents, backlog/done, ru
 No Android toolchain installation is part of the stage-2 run. Stage 4 must verify installed SDK/JDK/export templates before exporting.
 
 Stage-2 specifics (ADR 0007): sparse level slots stay null until ported; always iterate available_levels and use next_level for progression. WorldMechanics performs eight distance-constraint iterations and only writes velocity for nonzero well acceleration. Pads preserve incoming normal speed rather than add restitution. New enemy missiles live in Game.bodies so wells affect them; their helper arrays must also be cleared when removed. Root check imports new class scripts and rejects any engine ERROR. Default bot replays real shots; passive levels wait for the rolling scenery to settle, hostile levels fire once the launcher is free, and bounded search handles chaotic alternatives.
+
+## Boss and jet source details
+
+Keep original numbered intro levels25/31/33 and original ammo/par. Jet pack blast is14ticks after death (radius80,power20); grenade warning ring follows current position. Titan/dragon compound inertia multipliers are10/6. Flames are sensors (0.15gravity), so they damage via deferred contact without shoving solids. The dragon hint says grenade-only, but executable explode also accepts any blast within32px of its open mouth; preserve that exception.

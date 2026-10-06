@@ -20,6 +20,7 @@ const SETTLE_TICKS := 30
 var rng := RandomNumberGenerator.new()   # physics-affecting randomness (seeded per level)
 var frng := RandomNumberGenerator.new()  # cosmetic randomness
 var world: Node2D
+var bosses: BossAI
 var enemy_ai: EnemyAI
 var tricks: WorldMechanics
 var builder: LevelBuilder
@@ -62,6 +63,7 @@ func _ready() -> void:
 	world.name = "World"
 	add_child(world)
 	enemy_ai = EnemyAI.new(self)
+	bosses = BossAI.new(self)
 	tricks = WorldMechanics.new(self)
 	frng.randomize()
 	Debug.game = self
@@ -109,6 +111,7 @@ func start_level(i: int, data: Dictionary = {}) -> void:
 		world.remove_child(c)
 		c.queue_free()
 	enemy_ai.reset()
+	bosses.reset()
 	bodies.clear(); statics.clear(); enemies.clear(); projectiles.clear(); bullets.clear(); rags.clear()
 	queue.clear(); portals.clear(); particles.clear(); decals.clear()
 	if is_instance_valid(player) and not player.is_inside_tree():
@@ -167,6 +170,7 @@ func remove_body(b) -> void:
 		return
 	enemy_ai.arrows.erase(b)
 	enemy_ai.nades.erase(b)
+	bosses.flames.erase(b)
 	tricks.removed(b)
 	b.removed = true
 	bodies.erase(b); projectiles.erase(b); bullets.erase(b); rags.erase(b); enemies.erase(b)
@@ -236,6 +240,7 @@ func _physics_process(_dt: float) -> void:
 			remove_body(bl)
 	enemy_ai.update_arrows()
 	enemy_ai.update_nades()
+	bosses.update_missiles_and_gulp()
 	if not queue.is_empty():
 		var due := []
 		var rest := []
@@ -247,8 +252,9 @@ func _physics_process(_dt: float) -> void:
 	for e in enemies:
 		if not e.p.alive or not in_world(e):
 			continue
-		if absf(C.norm_a(e.rotation)) > 0.95 or e.global_position.y > 1400 or e.global_position.y < -700:
-			kill(e, Vector2.ZERO, false)
+		if (not e.p.titan and not e.p.dragon and absf(C.norm_a(e.rotation)) > 0.95) or e.global_position.y > 1400 or e.global_position.y < -700:
+			if e.p.titan or e.p.dragon: bosses.kill_boss(e)
+			else: kill(e, Vector2.ZERO, false)
 	if player.p.alive and player.global_position.y > 1300:
 		if sim - player.p.dmg_at > 240:
 			player.p.cause = "fall"
@@ -257,7 +263,7 @@ func _physics_process(_dt: float) -> void:
 	_update_rag_bleeding()
 	var moving := false
 	for b in bodies.duplicate():
-		if b.kind != "balloon" and b.linear_velocity.length() / C.STEP > 0.35:
+		if b.kind != "balloon" and b.kind != "flame" and not (b.kind == "enemy" and b.p.dragon) and b.linear_velocity.length() / C.STEP > 0.35:
 			moving = true
 		if b.global_position.y > 2600:
 			remove_body(b)
@@ -277,6 +283,7 @@ func _before_update() -> void:
 		if e.p.get("jet",false):
 			enemy_ai.hover(e)
 			continue
+		if bosses.before_update(e): continue
 		var a := C.norm_a(e.rotation)
 		var w: float = e.angular_velocity / C.STEP
 		if absf(a) < (0.6 if e.p.get("knight", false) else 0.45) and absf(w) < 0.1:
@@ -354,6 +361,9 @@ func hit(A: GBody, B: Node) -> void:
 		return
 	tricks.contact(A, B)
 	var k := A.kind
+	if k == "flame":
+		bosses.contact_flame(A, B)
+		return
 	if k == "balloon":
 		return
 	if k == "rocket":
@@ -369,7 +379,7 @@ func hit(A: GBody, B: Node) -> void:
 	if settling:
 		return
 	var bk := _kind(B)
-	if bk == "bullet" or bk == "arrow":
+	if bk == "bullet" or bk == "arrow" or bk == "flame":
 		return
 	var rv := (A.prev_v - _vel(B)).length() / C.STEP
 	var b_static := B is StaticBody2D
@@ -377,7 +387,7 @@ func hit(A: GBody, B: Node) -> void:
 		if rv > 3:
 			sound_requested.emit("clink", minf(1, rv / 12))
 		return
-	if k == "enemy" and A.p.alive and not A.p.dying:
+	if k == "enemy" and A.p.alive and not A.p.dying and not A.p.titan and not A.p.dragon:
 		var deadly := false
 		var ratio := minf(_mass(B) / A.mass, 4.0)
 		if b_static:
@@ -424,6 +434,8 @@ func _barrel_go(b: GBody) -> void:
 func char_colors(e: GBody) -> Array:
 	if e.kind == "player":
 		return [Color("#3b6cff"), Color("#2a4fd0"), Color("#8fb0ff")]
+	if e.p.get("titan", false): return [Color("#8b86a8"), Color("#5a5770"), Color("#b8b4d4")]
+	if e.p.get("dragon", false): return [Color("#3fa34d"), Color("#2b7a37"), Color("#9fdc6b")]
 	return [Color("#f06a3b"), Color("#c24a20"), Color("#ffa27a")]
 
 
@@ -589,10 +601,14 @@ func explode(p: Vector2, R: float, power: float, src, cause: String) -> void:
 			var shield: Vector2 = b.wpt(b.loc.extra)
 			if p.x < shield.x + 4 and p.y > b.global_position.y - 48:
 				f *= 0.15
+		if k == "enemy" and b.p.alive and (b.p.titan or b.p.dragon):
+			if bosses.blast_weakpoint(b, p, dir * 8): continue
+			if f > 0.3: bosses.label(p + Vector2(0,-30), "ARMOR" if b.p.titan else "SCALES", Color("#cfd5dc") if b.p.titan else Color("#9fdc6b"))
+			f *= 0.12 if b.p.titan else 0.15
 		var J := minf(power * f, 20 * b.mass)
 		var dv: Vector2 = dir * J / b.mass   # Matter px/step
 		if k == "enemy":
-			if b.p.alive and f > 0.18:
+			if b.p.alive and f > 0.18 and not b.p.titan and not b.p.dragon:
 				kill(b, dv, f > 0.62)
 				continue
 		elif k == "player":
@@ -726,6 +742,9 @@ func _update_enemies() -> void:
 		if pl.get("jet",false):
 			enemy_ai.update_jet(e,alert,player.wpt(player.loc.torso))
 			continue
+		if pl.titan or pl.dragon:
+			if alert: bosses.update(e)
+			continue
 		if pl.archer:
 			enemy_ai.update_archer(e, alert, player.wpt(player.loc.torso))
 			continue
@@ -795,7 +814,7 @@ func _update_world_tricks() -> void:
 			e.y = e.y0 + sin(t * e.mv.spd) * e.mv.amp
 	if portals.is_empty():
 		return
-	for b in projectiles + bullets + enemy_ai.arrows + enemy_ai.nades:
+	for b in projectiles + bullets + enemy_ai.arrows + enemy_ai.nades + bosses.flames:
 		if not in_world(b):
 			continue
 		var i := portal_at(b.global_position)

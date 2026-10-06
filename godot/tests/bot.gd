@@ -13,6 +13,8 @@ const SOLUTIONS := {
 	22: [[45, 0.6, "grenade"], [45, 0.6, "grenade"]],
 	24: [[25, 0.5, "rocket"], [25, 0.5, "rocket"]],
 	23: [[5, 1.0, "grenade"], [-15, 0.5, "grenade"]],
+	30: [[1, 0.7, "rocket"]],
+	32: [[64, 0.7, "grenade"]],
 }
 
 func _ready() -> void:

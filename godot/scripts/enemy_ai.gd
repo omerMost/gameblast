@@ -15,7 +15,7 @@ func reset() -> void:
 	stuck.clear()
 
 ## Matter updates velocity (gravity) before position. Return the first viable speed.
-func solve_lob(S: Vector2, T: Vector2, speeds: Array, prefer_high: bool) -> Dictionary:
+func solve_lob(S: Vector2, T: Vector2, speeds: Array, prefer_high: bool, gravity := C.GS) -> Dictionary:
 	var dir_x := signf(T.x - S.x)
 	if dir_x == 0:
 		dir_x = -1
@@ -29,7 +29,7 @@ func solve_lob(S: Vector2, T: Vector2, speeds: Array, prefer_high: bool) -> Dict
 			var best := INF
 			for tick in 240:
 				v += game.tricks.acceleration(pos)
-				v.y += C.GS
+				v.y += gravity
 				pos += v
 				best = minf(best, pos.distance_to(T))
 				if pos.y > T.y + 60 and v.y > 0:

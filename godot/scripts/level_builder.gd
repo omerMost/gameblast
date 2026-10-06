@@ -218,19 +218,57 @@ func make_char(x: float, bot: float, type: String) -> GBody:
 
 
 func enemy(x: float, bottom: float, o: Dictionary) -> GBody:
-	var e := make_char(x, bottom, "knight" if o.get("knight", false) else ("jet" if o.get("jet",false) else "enemy"))
+	var e := make_boss(x, bottom, o.get("titan", false)) if o.get("titan", false) or o.get("dragon", false) else make_char(x, bottom, "knight" if o.get("knight", false) else ("jet" if o.get("jet",false) else "enemy"))
 	e.collision_layer = C.L_ENEMY
 	e.collision_mask = C.M_ENEMY
-	e.p.merge({"shooter": o.get("shooter", false), "archer": o.get("archer", false), "lob": 0.0, "draw": 0, "aim_a": PI, "next": 0, "alert_at": 0, "mflash": 0, "dying": false})
+	e.p.merge({"titan": o.get("titan", false), "dragon": o.get("dragon", false), "shooter": o.get("shooter", false), "archer": o.get("archer", false), "lob": 0.0, "draw": 0, "aim_a": PI, "next": 0, "alert_at": 0, "mflash": 0, "dying": false})
 	e.p.knight = o.get("knight", false)
 	if e.p.knight:
 		e.inertia *= 4
 	e.p.jet = o.get("jet",false)
 	if e.p.jet:
 		e.p.merge({"hx":e.global_position.x,"hy":e.global_position.y,"ph":game.rnd(0,6)})
-	for k in ["titan", "dragon"]:
-		if o.get(k, false):
-			push_error("LevelBuilder: enemy type '%s' is not ported yet (stage 2)" % k)
+	if e.p.dragon:
+		e.p.merge({"hx": e.position.x, "hy": e.position.y, "ph": rng.randf() * 6, "breath": "idle", "bt": 0, "mouth_open": false})
 	game.add_body(e)
 	game.enemies.append(e)
+	return e
+
+
+## Exact prototype compound shapes; centre and inertia are mass weighted.
+func make_boss(x: float, y: float, titan: bool) -> GBody:
+	var defs := [
+		["rect", Vector2(x,y-6), Vector2(64,12), 0.006,"feet"],
+		["rect", Vector2(x,y-40), Vector2(40,56), 0.002,"legs"],
+		["rect", Vector2(x,y-104), Vector2(66,74), 0.002,"torso"],
+		["circle", Vector2(x,y-158), 19.0, 0.0015,"head"],
+		["circle", Vector2(x-30,y-100), 13.0, 0.002,"core"]] if titan else [
+		["rect",Vector2(x,y),Vector2(92,38),0.0012,"body"],
+		["circle",Vector2(x-74,y-30),18.0,0.0012,"head"],
+		["rect",Vector2(x+70,y+6),Vector2(52,12),0.0008,"tail"]]
+	var mass := 0.0
+	var com := Vector2.ZERO
+	var masses := []
+	for d in defs:
+		var m: float = (d[2].x*d[2].y if d[0] == "rect" else PI*d[2]*d[2])*d[3]
+		mass += m
+		com += d[1]*m
+		masses.append(m)
+	com /= mass
+	var e := _body("enemy",com)
+	for d in defs:
+		var lp: Vector2 = d[1]-com
+		if d[0] == "rect": e.add_rect(lp,d[2])
+		else: e.add_circle(lp,d[2])
+		e.loc[d[4]] = lp
+	e.loc.ref = Vector2(x,y-62)-com if titan else e.loc.body
+	if not titan:
+		e.loc.torso = e.loc.body
+		e.loc.mouth = e.loc.head + Vector2(-20,6)
+	e.mass = mass
+	e.matter_inertia(masses)
+	e.inertia *= 10 if titan else 6
+	e.set_phys(0.35 if titan else 0.5, 0 if titan else 0.1)
+	e.can_sleep = false
+	e.p = {"alive":true}
 	return e

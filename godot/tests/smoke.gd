@@ -32,6 +32,11 @@ func _ready() -> void:
 			if previous.has(b):
 				fast = maxf(fast, b.global_position.distance_to(previous[b]) * C.STEP)
 		var ok: bool = Debug.alive() == n0 and g.player.p.alive and g.player.p.hp == 100 and Debug.state() == "play" and ((drift < 1000.0 and fast < 1000.0) if i in [19,24] else (drift < 4.0 and fast < 5.0))
+		if i == 30:
+			ok = Debug.alive() == n0 and g.player.p.alive and g.player.p.hp == 100 and g.state == "play" and drift < 400 and fast < 150
+		elif i == 32:
+			# Original alert90 intentionally starts fire before tick300: two5HP hits.
+			ok = Debug.alive() == n0 and g.player.p.alive and g.player.p.hp == 90 and g.player.p.cause == "fire" and g.state == "play" and drift < 100
 		print("SMOKE level %d %-14s enemies %d->%d hp %d state %s max_drift %.2fpx (%s) max_speed %.2fpx/s  %s" % [i + 1, g.L.name, n0, Debug.alive(), g.player.p.hp, Debug.state(), drift, who, fast, "ok" if ok else "FAIL"])
 		if not ok:
 			fails.append(i + 1)

@@ -63,4 +63,8 @@ const LEVELS := [
 		["ground",0,180,560], ["plat",680,900,560,30], ["wall",680,330,700,560], ["enemy",760,560], ["enemy",830,560],
 		["plat",360,520,650,30], ["enemy",420,650,SH]]},
 	JetLevel.DATA,
+	null, null, null, null, null,
+	{"name":"Titan", "view":[0,190,1000,510], "ammo":{"rocket":4,"grenade":2}, "par":1, "alert_at":60, "hint":"Titans only fall to a hit on the glowing belly", "build":[["ground",0,190,560],["ground",190,1040,650],["barrel",520,650],["enemy",880,650,{"titan":true}]]},
+	null,
+	{"name":"Dragon", "view":[0,170,960,520], "ammo":{"grenade":5}, "par":1, "alert_at":90, "hint":"Lob a grenade into its mouth when it opens", "build":[["ground",0,190,560],["ground",190,1000,650],["enemy",740,330,{"dragon":true}]]},
 ]
