@@ -35,6 +35,13 @@ func _ready() -> void:
 	g.explode(bl.global_position, C.R_GREN, C.P_GREN, null, "self")
 	await Debug.step(2)
 	expect(not g.in_world(bl), "blast pops balloon with deferred removal")
+	await Debug.start_level(0, data([]))
+	var target_balloon := g.tricks.balloon(420,350,g.player,Vector2.ZERO,0)
+	g.tricks.cut(target_balloon.p.rope)
+	target_balloon.freeze = true
+	var passing_arrow := g.enemy_ai.spawn_arrow(Vector2(350,350),Vector2(10,0))
+	await Debug.step(16)
+	expect(g.in_world(target_balloon) and g.in_world(passing_arrow) and passing_arrow.global_position.x > 480, "enemy arrow crosses balloon without hitting or popping it")
 	await Debug.start_level(0, data([["bridge",250,400,650,400,8]]))
 	await Debug.step(120)
 	expect(g.tricks.ropes.size() == 9 and g.tricks.ropes.all(func(link): return not link.cut), "bridge retains connected planks")

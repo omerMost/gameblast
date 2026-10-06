@@ -6,6 +6,8 @@ When you complete a backlog item, move its bullet from `backlog.md` to here in t
 
 ---
 
+- 2026-10-07 — Stage-2 step 5: jetpack hover/compound pack, lob grenades, fuse110/toss10, current-position warning ring and pack explosion14ticks after death. Original L25 clears in two rockets (par3); twelve available levels.
+
 - 2026-10-07 — Stage-2 step 4: knights and original L20, frontal shield and rear/overhead bypass, sword delay/cooldown, run/jump/climb and physical dropped weapons. Eleven levels verified with real-input clearance. Content validator now rejects malformed opcodes/geometry/references; enemy missiles follow prototype balloon collision filtering.
 
 - 2026-10-07 — Stage-2 integration checkpoint on the run branch: archers (L19), ropes/balloons/bridges/pads (L21–23), wells/curved preview (L24), 25 procedural sound effects and 112 BPM ducking music. Ten playable levels retain original ammo/par and pass real-input bot clearance. Godot check runner/content validation/bots complete; web checks remain queued.

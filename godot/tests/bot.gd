@@ -11,6 +11,7 @@ const SOLUTIONS := {
 	20: [[75, 0.8, "grenade"]],
 	21: [[10, 1.0, "grenade"]],
 	22: [[45, 0.6, "grenade"], [45, 0.6, "grenade"]],
+	24: [[25, 0.5, "rocket"], [25, 0.5, "rocket"]],
 	23: [[5, 1.0, "grenade"], [-15, 0.5, "grenade"]],
 }
 
@@ -48,12 +49,12 @@ func _ready() -> void:
 		if not ok:
 			# ADR 0006: chaotic physics can vary with simulation history. Search a
 			# replacement using the same real inputs/ammo, never change the world.
-			var search = load("res://tests/knight.gd" if i == 19 else "res://tests/sweep.gd").new()
+			var search = load("res://tests/knight.gd" if i == 19 else ("res://tests/jet.gd" if i == 24 else "res://tests/sweep.gd")).new()
 			search.g = g
-			var replacement: Dictionary = await search.solve(true) if i == 19 else await search.solve(i)
+			var replacement: Dictionary = await search.solve(true) if i in [19,24] else await search.solve(i)
 			print("BOT replacement level %d %s" % [i + 1, replacement])
 			ok = replacement.win and g.player.p.alive
-			for death in TestUtil.deaths() if i == 19 else search.death_log:
+			for death in TestUtil.deaths() if i in [19,24] else search.death_log:
 				if not C.CAUSES.has(death.cause): ok = false
 			search.free()
 		print("BOT level %d %s %s shots=%d par=%d" % [i + 1, g.L.name, "WIN" if ok else "FAIL", g.shots, g.L.par])

@@ -3,6 +3,7 @@ extends RefCounted
 ## Stage-2 enemy behaviour and missiles, translated from prototype solveLob/updateEnemies.
 var game: Game
 var arrows := []
+var nades := []
 var stuck := []
 
 func _init(g: Game) -> void:
@@ -10,6 +11,7 @@ func _init(g: Game) -> void:
 
 func reset() -> void:
 	arrows.clear()
+	nades.clear()
 	stuck.clear()
 
 ## Matter updates velocity (gravity) before position. Return the first viable speed.
@@ -179,3 +181,66 @@ func drop_weapons(e: GBody, torso: Vector2, v: Vector2, angle: float) -> void:
 	sw.p.hp = 1e9
 	sw.linear_velocity = (v + Vector2(game.rnd(-3,3), -game.rnd(2,5))) * C.STEP
 	sw.angular_velocity = game.rnd(-0.4,0.4) * C.STEP
+
+func hover(e: GBody) -> void:
+	var a := C.norm_a(e.rotation)
+	if absf(a) >= 0.9: return
+	var t: float = game.sim / 60.0 + e.p.ph
+	var target := Vector2(e.p.hx+sin(t*0.7)*40,e.p.hy+sin(t*1.3)*14)
+	var accel := (target-e.global_position)*0.0016-e.linear_velocity/C.STEP*0.06
+	if accel.length()>0.35: accel=accel.normalized()*0.35
+	e.apply_central_impulse(accel*e.mass*C.STEP+Vector2(0,-e.mass*0.001*C.FORCE_IMPULSE))
+	e.angular_velocity=(e.angular_velocity/C.STEP*0.8-a*0.05)*C.STEP
+
+func update_jet(e: GBody, alert: bool, target: Vector2) -> void:
+	var pl := e.p
+	var S := game.enemy_shoulder(e)
+	var want: float = pl.lob if pl.lob else (game.player_head()-S).angle()
+	pl.aim_a+=C.norm_a(want-pl.aim_a)*0.12
+	if not alert: return
+	if pl.next==0:
+		pl.next=game.sim+game.rng.randi_range(50,119)
+		pl.alert_at=game.sim
+		game.sound_requested.emit("alert",1.0)
+	if absf(C.norm_a(e.rotation))>0.4 or game.sim<pl.next: return
+	pl.next=game.sim+game.rng.randi_range(220,299)
+	var sol := solve_lob(S,target,[9,11,13,15],false)
+	if sol.is_empty(): return
+	pl.lob=sol.a
+	pl.toss=game.sim
+	game.later(10,release_nade.bind(e,sol))
+
+func release_nade(e: GBody, sol: Dictionary) -> void:
+	if not game.in_world(e) or not e.p.alive or game.state!="play": return
+	var dir := Vector2.from_angle(sol.a+game.rnd(-0.09,0.09))
+	spawn_nade(game.enemy_shoulder(e)+dir*24,dir*sol.speed)
+	e.p.lob=0.0
+	game.sound_requested.emit("toss",1.0)
+	Debug.log_event("nade_toss",{"delay":game.sim-e.p.toss,"speed":sol.speed})
+
+func spawn_nade(pos: Vector2, velocity: Vector2) -> GBody:
+	var b := game.builder._body("nade",pos)
+	b.add_circle(Vector2.ZERO,8)
+	b.mass=PI*64*0.004
+	b.matter_inertia([b.mass])
+	b.set_phys(0.5,0.4)
+	b.set_air(0)
+	b.collision_layer=C.L_MISSILE
+	b.collision_mask=C.M_MISSILE
+	b.continuous_cd=RigidBody2D.CCD_MODE_CAST_SHAPE
+	b.p={"fuse":game.sim+110}
+	b.watch_contacts()
+	game.add_body(b)
+	b.linear_velocity=velocity*C.STEP
+	b.angular_velocity=0.2*C.STEP
+	nades.append(b)
+	return b
+
+func update_nades() -> void:
+	for b in nades.duplicate():
+		if game.sim>=b.p.fuse: game.explode(b.global_position,C.R_GREN,C.P_GREN,b,"enemy")
+		elif b.global_position.y>1600: game.remove_body(b)
+
+## Prototype telegraph follows the grenade position, radius93.75, alpha.25→.70.
+func telegraph(b: GBody) -> Dictionary:
+	return {"center":b.global_position,"radius":C.R_GREN*0.75,"alpha":0.25+0.45*(1.0-(b.p.fuse-game.sim)/110.0)}

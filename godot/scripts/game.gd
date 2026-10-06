@@ -166,6 +166,7 @@ func remove_body(b) -> void:
 	if not is_instance_valid(b) or b.removed:
 		return
 	enemy_ai.arrows.erase(b)
+	enemy_ai.nades.erase(b)
 	tricks.removed(b)
 	b.removed = true
 	bodies.erase(b); projectiles.erase(b); bullets.erase(b); rags.erase(b); enemies.erase(b)
@@ -234,6 +235,7 @@ func _physics_process(_dt: float) -> void:
 		if sim - bl.p.born > 150 or bp.y > 1600 or bp.x < -400 or bp.x > 2000:
 			remove_body(bl)
 	enemy_ai.update_arrows()
+	enemy_ai.update_nades()
 	if not queue.is_empty():
 		var due := []
 		var rest := []
@@ -271,6 +273,9 @@ func _before_update() -> void:
 	tricks.before_update()
 	for e in enemies:
 		if not e.p.alive or not in_world(e):
+			continue
+		if e.p.get("jet",false):
+			enemy_ai.hover(e)
 			continue
 		var a := C.norm_a(e.rotation)
 		var w: float = e.angular_velocity / C.STEP
@@ -368,7 +373,7 @@ func hit(A: GBody, B: Node) -> void:
 		return
 	var rv := (A.prev_v - _vel(B)).length() / C.STEP
 	var b_static := B is StaticBody2D
-	if k == "grenade":
+	if k == "grenade" or k == "nade":
 		if rv > 3:
 			sound_requested.emit("clink", minf(1, rv / 12))
 		return
@@ -499,7 +504,10 @@ func kill(e: GBody, ev: Vector2, gib: bool) -> void:
 	sound_requested.emit("splat" if gib else "pop", 1.0)
 	Debug.log_event("enemy_killed", {"ev": ev, "gib": gib, "rot": e.rotation, "y": e.global_position.y})
 	if in_world(e):
-		make_ragdoll(e, ev, gib)
+		var torso := make_ragdoll(e, ev, gib)
+		if e.p.get("jet",false):
+			var velocity := e.linear_velocity / C.STEP
+			later(14, explode.bind(torso+velocity*14,80.0,20.0,null,"enemy"))
 	hud_changed.emit()
 
 
@@ -715,6 +723,9 @@ func _update_enemies() -> void:
 		if pl.get("knight", false):
 			if alert: enemy_ai.update_knight(e)
 			continue
+		if pl.get("jet",false):
+			enemy_ai.update_jet(e,alert,player.wpt(player.loc.torso))
+			continue
 		if pl.archer:
 			enemy_ai.update_archer(e, alert, player.wpt(player.loc.torso))
 			continue
@@ -784,7 +795,7 @@ func _update_world_tricks() -> void:
 			e.y = e.y0 + sin(t * e.mv.spd) * e.mv.amp
 	if portals.is_empty():
 		return
-	for b in projectiles + bullets + enemy_ai.arrows:
+	for b in projectiles + bullets + enemy_ai.arrows + enemy_ai.nades:
 		if not in_world(b):
 			continue
 		var i := portal_at(b.global_position)

@@ -185,6 +185,8 @@ func make_char(x: float, bot: float, type: String) -> GBody:
 		defs.append(["circle", Vector2(x, bot - 61), 13.0, 0.001, "head"])
 	if type == "knight":
 		defs.append(["rect", Vector2(x - 20, bot - 34), Vector2(8, 46), 0.002, "extra"])
+	if type == "jet":
+		defs.append(["rect", Vector2(x+17,bot-32), Vector2(12,24),0.002,"extra"])
 	var mass := 0.0
 	var com := Vector2.ZERO
 	for d in defs:
@@ -216,14 +218,17 @@ func make_char(x: float, bot: float, type: String) -> GBody:
 
 
 func enemy(x: float, bottom: float, o: Dictionary) -> GBody:
-	var e := make_char(x, bottom, "knight" if o.get("knight", false) else "enemy")
+	var e := make_char(x, bottom, "knight" if o.get("knight", false) else ("jet" if o.get("jet",false) else "enemy"))
 	e.collision_layer = C.L_ENEMY
 	e.collision_mask = C.M_ENEMY
 	e.p.merge({"shooter": o.get("shooter", false), "archer": o.get("archer", false), "lob": 0.0, "draw": 0, "aim_a": PI, "next": 0, "alert_at": 0, "mflash": 0, "dying": false})
 	e.p.knight = o.get("knight", false)
 	if e.p.knight:
 		e.inertia *= 4
-	for k in ["jet", "titan", "dragon"]:
+	e.p.jet = o.get("jet",false)
+	if e.p.jet:
+		e.p.merge({"hx":e.global_position.x,"hy":e.global_position.y,"ph":game.rnd(0,6)})
+	for k in ["titan", "dragon"]:
 		if o.get(k, false):
 			push_error("LevelBuilder: enemy type '%s' is not ported yet (stage 2)" % k)
 	game.add_body(e)

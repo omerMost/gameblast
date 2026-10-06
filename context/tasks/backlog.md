@@ -7,7 +7,7 @@ Active, actionable work. One bullet = one chunk you could pick up and finish in 
 _(Mid-flight or top-priority. Usually 1–3 items.)_
 
 - [ ] Android toolchain for stage 4: a separate session in the Moo Rush project is installing it machine-wide (Android cmdline-tools in; JDK 17 not yet as of 2026-10-07). Still needed for Blast Ranger: check it covers the Godot 4.7.2 export templates, NDK, debug keystore and editor SDK/JDK paths, then record the versions in `tech-stack.md`. Godot 4.7.2 itself is installed
-- [ ] Godot port stage 2: resumed on `run/godot-stage-2`; steps 1–4, 6–7, 10 complete (death/FX, archers, worlds, audio). Jetpacks and bosses remain; merge awaits morning-page review.
+- [ ] Godot port stage 2: resumed on `run/godot-stage-2`; steps 1–7, 10 complete (death/FX, archers, worlds, audio). Bosses remain; merge awaits morning-page review.
 - [ ] Decide what to do with the old public artifact link friends use: republish it from `prototype/`, or replace it with a hosted build (for example on `site/` or itch.io)
 - [ ] Run `npm install` in `mobile/` and get the Expo app running on a device/simulator
 - [ ] Add dev/prod app identities: `noamcli pack add dev-prod-variant`

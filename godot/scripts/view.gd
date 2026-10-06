@@ -58,7 +58,7 @@ func _draw() -> void:
 	for b in game.bodies:
 		match b.kind:
 			"enemy": _draw_enemy(b)
-			"grenade": _draw_grenade(b)
+			"grenade", "nade": _draw_grenade(b)
 			"rocket": _draw_rocket(b)
 			"bullet": _draw_bullet(b)
 			"arrow": _draw_arrow(b.global_position, b.linear_velocity.angle(), 22)
@@ -258,6 +258,12 @@ func _draw_enemy(e: GBody) -> void:
 		draw_circle(Hd + Vector2(0, -2), 14.5, Color("#3d4a2a"))
 		draw_circle(Hd + Vector2(0, 3), 12.5, col[0])
 		draw_rect(Rect2(Hd.x - 16, Hd.y - 3, 32, 4), Color("#3d4a2a"))
+	elif pl.get("jet",false):
+		draw_rect(Rect2(Lc.extra-Vector2(6,12),Vector2(12,24)),Color("#687787"))
+		draw_rect(Rect2(Lc.extra+Vector2(-5,11),Vector2(10,5)),Color("#3d4250"))
+		draw_rect(Rect2(Lc.extra+Vector2(-7,-6),Vector2(14,4)),Color("#e0452e"))
+		draw_arc(Hd+Vector2(0,-2),14.5,PI,TAU,16,Color("#3d4a2a"),7)
+		draw_rect(Rect2(Hd+Vector2(-14,-3),Vector2(12,5)),Color("#9fe3ff"))
 	elif pl.get("knight", false):
 		draw_colored_polygon(rr(T.x-12,T.y-20,24,40,10), Color("#b9c0cc"))
 		draw_rect(Rect2(Lc.extra-Vector2(4,23),Vector2(8,46)),Color("#8a93a3"))
@@ -275,7 +281,7 @@ func _draw_enemy(e: GBody) -> void:
 		draw_line(T + Vector2(11, 0), T + Vector2(3, 1), Color("#2c2833"), 7)
 		draw_line(T + Vector2(4, -12), T + Vector2(-12, -5), col[1], 7)
 	draw_set_transform(Vector2.ZERO)
-	if pl.shooter or pl.archer:
+	if pl.shooter or pl.archer or pl.get("jet",false):
 		var S := game.enemy_shoulder(e)
 		var a: float = pl.aim_a
 		var flip := -1.0 if absf(C.norm_a(a)) > PI / 2 else 1.0
@@ -287,6 +293,9 @@ func _draw_enemy(e: GBody) -> void:
 			if pull:
 				draw_line(Vector2(8 - pull, 0), Vector2(36 - pull, 0), Color("#7a5530"), 2)
 			draw_line(Vector2(-4, 0), Vector2(16, 0), col[1], 7)
+		elif pl.get("jet",false):
+			draw_line(Vector2(-4,0),Vector2(16,0),col[1],7)
+			if pl.lob: draw_circle(Vector2(20,0),6,Color("#4f9a3a"))
 		else:
 			draw_line(Vector2(-8, 2), Vector2(32, 0), Color("#2c2833"), 4)
 			draw_line(Vector2(-10, 3), Vector2(0, 4), Color("#2c2833"), 7)
@@ -330,13 +339,18 @@ func _draw_rag(b: GBody) -> void:
 
 
 func _draw_grenade(b: GBody) -> void:
+	var enemy := b.kind == "nade"
+	if enemy:
+		var ring := game.enemy_ai.telegraph(b)
+		for d in range(0,360,12):
+			draw_arc(ring.center,ring.radius,deg_to_rad(d),deg_to_rad(d+6),3,Color(1,0.235,0.235,ring.alpha),3)
 	draw_set_transform(b.global_position, b.rotation)
 	var left: int = b.p.fuse - game.sim
 	if left < 50 and int(game.sim / 5.0) % 2:
 		draw_circle(Vector2.ZERO, 15, Color(1, 70 / 255.0, 40 / 255.0, 0.45))
 	draw_rect(Rect2(-3, -13, 6, 5), Color("#7a7f8c"))
-	_head(Vector2.ZERO, 9, Color("#8fd16f"), Color("#3f7f2c"))
-	var lc := Color("#2f6323")
+	_head(Vector2.ZERO, 9, Color("#9aa0aa") if enemy else Color("#8fd16f"), Color("#4a4f5a") if enemy else Color("#3f7f2c"))
+	var lc := Color("#2e323a") if enemy else Color("#2f6323")
 	draw_line(Vector2(-8, -2), Vector2(8, -2), lc, 1.2)
 	draw_line(Vector2(-8, 3), Vector2(8, 3), lc, 1.2)
 	draw_line(Vector2(0, -9), Vector2(0, 9), lc, 1.2)

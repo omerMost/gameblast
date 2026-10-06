@@ -62,4 +62,5 @@ const LEVELS := [
 	{"name":"Black hole", "theme":"sky", "view":[0,170,940,530], "ammo":{"grenade":3,"rocket":2}, "par":2, "hint":"The black hole bends your shots", "wells":[[450,360,0.2]], "build":[
 		["ground",0,180,560], ["plat",680,900,560,30], ["wall",680,330,700,560], ["enemy",760,560], ["enemy",830,560],
 		["plat",360,520,650,30], ["enemy",420,650,SH]]},
+	JetLevel.DATA,
 ]
