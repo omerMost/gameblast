@@ -26,4 +26,6 @@
 
 **Repo:** this worktree's branch was fast-forwarded to `main` d0efb6a (`sync_with_base_branch` refused because `origin` moved; the user can re-pin it in Help → Troubleshooting). Also, the prototype's music played aloud from the comparison tab, so the tab was closed and the server stopped. Next time, mute before opening it.
 
+**Landing:** the user confirmed in this chat: commit and push. Renumbered the ADR to 0006 (main took 0003–0005 for the working-method ADRs). Merged main d1e870f (one backlog conflict, kept both sides). The Android toolchain is being installed by a separate Moo Rush session, so this session didn't install it.
+
 **Next:** stage 2 (godot-porter): archers, knights, jetpacks, titans, dragons, ropes/balloons/black holes/pads, sfx + music with ducking.

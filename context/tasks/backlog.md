@@ -6,7 +6,7 @@ Active, actionable work. One bullet = one chunk you could pick up and finish in 
 
 _(Mid-flight or top-priority. Usually 1–3 items.)_
 
-- [ ] Finish the Android toolchain for stage 4: Godot 4.7.2 export templates, JDK 17, Android SDK + NDK, debug keystore, editor settings. Godot 4.7.2 itself is installed. Record versions in `tech-stack.md`
+- [ ] Android toolchain for stage 4: a separate session in the Moo Rush project is installing it machine-wide (Android cmdline-tools in; JDK 17 not yet as of 2026-10-07). Still needed for Blast Ranger: check it covers the Godot 4.7.2 export templates, NDK, debug keystore and editor SDK/JDK paths, then record the versions in `tech-stack.md`. Godot 4.7.2 itself is installed
 - [ ] Godot port stage 2 (all enemies and features): next up, using the `godot-porter` agent (ADR 0002)
 - [ ] Decide what to do with the old public artifact link friends use: republish it from `prototype/`, or replace it with a hosted build (for example on `site/` or itch.io)
 - [ ] Run `npm install` in `mobile/` and get the Expo app running on a device/simulator
@@ -18,6 +18,9 @@ _(Mid-flight or top-priority. Usually 1–3 items.)_
 
 _(Approved, ready to pick up, not started yet.)_
 
+- [ ] **`check.sh` + bots (ADR 0003)** after Godot stage 1 lands. One command runs the Godot headless tests (smoke, sweep, shooters, …), the level validator, and a bot that clears every ported level. The web prototype gets the same through `window.__dbg`. It must be green before every commit.
+- [ ] **`context/build-guide.md`**: the rulebook every code session follows (Godot settings, the Matter.js → Godot mapping and units, physics numbers, layout). Start it from `.claude/agents/godot-porter.md` and stage 1's real numbers.
+- [ ] **The first overnight run (ADR 0005)** once `check.sh` exists. A candidate north star: "Godot stage 2: all enemies and features, playable by morning."
 - [ ] Godot port stage 3 (all 40 levels), stage 4 (Android `.apk` export)
 - [ ] Godot port: sound effects (stage 1 is silent; the prototype's sfx are generated with Web Audio and need `.wav`s or an `AudioStreamGenerator`). Music with ducking is part of stage 2
 - [ ] Godot port feel gaps (ADR 0006): debris kills enemies less often than in the prototype (level 2 flat rocket), and grenade corner bounces and spin grip differ. Re-run `godot/tests/grid.gd` against the prototype after each tuning pass

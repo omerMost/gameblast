@@ -10,6 +10,8 @@ If this is out of sync with the code, the code wins — but raise it as a bug, b
 
 ## At a glance
 
+**Working methods (ADRs 0003–0005, adopted 2026-10-07, taken from the friend's RareDrop project):** the AI builds and verifies everything (`check.sh`, bots, decision cards, playtest notes). Claude commits its own verified work and pushes `main` after every landing. Overnight runs leave a morning page.
+
 Blast Ranger — physics bazooka shooter game for Android/iOS.
 
 - **The game lives in [`prototype/index.html`](../prototype/index.html).** It's a single-file HTML5 + Matter.js browser game with 40 levels, built in a claude.ai chat on 2026-10-02 → 04 and copied into the repo on 2026-10-06. **The repo copy is now the source of truth.** The old public claude.ai artifact (https://claude.ai/artifact/UbwwHgS9yqQbwwpup9xNoE) is what friends still play, and it **does not update from the repo**. History: `sessions/2026-10-02-22-31-*`, `2026-10-03-22-00-*`, `2026-10-04-14-35-*`.
