@@ -1,6 +1,8 @@
 # Suites run by ./check.sh, in order (fast ones first).
 smoke
+validate
 shooters
 selfharm
 death
+fx
 sweep

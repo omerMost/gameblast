@@ -7,7 +7,7 @@ When to update: any new module, renamed boundary, or refactor that moves respons
 
 ## Shape (one paragraph)
 
-Today the whole game is one HTML file (`prototype/index.html`), with no build step and no backend. Matter.js runs the physics. A fixed-step simulation (60 Hz, at most 4 steps per animation frame, run slower during slow-mo) is decoupled from the canvas renderer. Gameplay rules sit on top of the engine through two Matter events (`beforeUpdate` and `collisionStart`) and a per-step `step()` function. `mobile/` (Expo) and `site/` are empty scaffolds. The native app is a Godot 4 port in `godot/` (ADR 0002), at stage 1; its layout is below.
+Today the whole game is one HTML file (`prototype/index.html`), with no build step and no backend. Matter.js runs the physics. A fixed-step simulation (60 Hz, at most 4 steps per animation frame, run slower during slow-mo) is decoupled from the canvas renderer. Gameplay rules sit on top of the engine through two Matter events (`beforeUpdate` and `collisionStart`) and a per-step `step()` function. `mobile/` (Expo) and `site/` are empty scaffolds. The native app is a Godot 4 port in `godot/` (ADR 0002), at stage 2 in progress on the run branch; its layout is below.
 
 ## Block diagram
 
@@ -36,7 +36,7 @@ LEVELS[] (data + build(b) fns)
 - **FX / DRAWING / SOUND**: render and audio only. They never change the physics.
 - **UI / INPUT**: overlays, HUD and the drag-to-aim gesture. Saved progress lives in `localStorage['blastRanger2']`.
 
-## Godot port (`godot/`, stage 1)
+## Godot port (`godot/`, stage 2 in progress)
 
 Same shape as the prototype, split into files. The prototype stays the spec (ADR 0002); physics-parity rules are in ADR 0006.
 
@@ -55,7 +55,7 @@ godot/
   levels/levels.gd       LEVELS[] as data ({name, view, ammo, par, hint, portals, build:[ops]}); levels 1-5 so far
   autoload/save.gd       Save: user://save.json
   autoload/debug.gd      Debug: window.__dbg mirror (start_level, set_aim, fire, step, alive, state, predict) + event log
-  tests/                 headless test scenes + run.sh (see tech-stack.md)
+  tests/                 headless test scenes + run.sh, suites.txt; root check.sh checks logs and exit status
 ```
 
 Mapping: Matter `collisionStart` → `body_shape_entered` → `Game.hit()` (flags + `later()` only); Matter `beforeUpdate` → `Game._before_update()` at the end of `_physics_process`; Godot flushes contact signals *before* `_physics_process`, so `later(0)` runs in the same tick as in Matter. Bodies are removed only from `_physics_process` (`remove_body()`); the dead player node is detached but kept until the next level so the lose card can read `cause`.
@@ -65,3 +65,5 @@ Mapping: Matter `collisionStart` → `body_shape_entered` → `Game.hit()` (flag
 - One file because it was built and published as a claude.ai artifact, which had to be a single page.
 - Kills and damage go through `later()` because removing bodies inside `collisionStart` breaks Matter.js.
 - The player has infinite inertia (can't rotate). This fixed the "dying for no reason" bug, where launcher recoil tipped the soldier over (see `sessions/2026-10-02-22-31-*`). **Don't remove it.** The Godot port keeps it as `player.lock_rotation = true` in `Game.start_level()`.
+
+FX parity: moving ragdoll parts bleed every third simulation tick; blood-off emits colored debris. View clips blood/scorch ellipse polygons to non-pad statics and scales the overhead HP fill directly to health. The FX suite exercises both toggle states, real deaths and decal clipping; validate checks playable level metadata and core blast constants.

@@ -28,6 +28,10 @@ static func rr(x: float, y: float, w: float, h: float, r: float) -> PackedVector
 	return pts
 
 
+static func hp_fill_polygon(hb: Vector2, hp: float) -> PackedVector2Array:
+	return rr(hb.x - 21, hb.y - 3, 42 * hp, 6, 3)
+
+
 func _fill_outline(pts: PackedVector2Array, fill: Color, line: Color, lw: float) -> void:
 	draw_colored_polygon(pts, fill)
 	var closed := pts.duplicate()
@@ -93,15 +97,36 @@ func _draw_static(s: GStatic) -> void:
 	draw_line(s.poly[0] + Vector2(0, 2), s.poly[1] + Vector2(0, 2), Color("#f8dc9e"), 6, true)
 
 
+## Canvas clips decals to non-pad statics. Intersect each ellipse in world space
+## so blood and scorch never float beyond platform edges.
+func decal_polygons(center: Vector2, radius: Vector2, angle: float) -> Array:
+	var ellipse := PackedVector2Array()
+	for i in 32:
+		var a := TAU * i / 32
+		ellipse.append(center + Vector2(cos(a) * radius.x, sin(a) * radius.y).rotated(angle))
+	var clipped := []
+	for body in game.statics:
+		if body.kind != "pad":
+			clipped.append_array(Geometry2D.intersect_polygons(ellipse, body.poly))
+	return clipped
+
+
+func _draw_decal_ellipse(center: Vector2, radius: Vector2, angle: float, color: Color) -> void:
+	for polygon in decal_polygons(center, radius, angle):
+		draw_colored_polygon(polygon, color)
+
+
 func _draw_decals() -> void:
 	for d in game.decals:
+		var center := Vector2(d.x, d.y)
 		if d.t == "scorch":
-			draw_circle(Vector2(d.x, d.y), d.r, Color(0.16, 0.1, 0.05, 0.28))
-			draw_circle(Vector2(d.x, d.y), d.r * 0.55, Color(0.1, 0.06, 0.03, 0.25))
+			_draw_decal_ellipse(center, Vector2.ONE * d.r, 0, Color(0.16, 0.1, 0.05, 0.28))
+			_draw_decal_ellipse(center, Vector2.ONE * d.r * 0.55, 0, Color(0.1, 0.06, 0.03, 0.25))
 		elif Save.prog.blood:
-			draw_set_transform(Vector2(d.x, d.y), 0, Vector2(d.sx, 1))
-			draw_circle(Vector2.ZERO, d.r, Color(0.6, 0.05, 0.1, 0.8))
-			draw_set_transform(Vector2.ZERO)
+			var color := Color(150 / 255.0, 10 / 255.0, 24 / 255.0, 0.88)
+			_draw_decal_ellipse(center, Vector2(d.r * d.sx, d.r * 0.75), d.get("a", 0.0), color)
+			for dot in d.get("dots", []):
+				_draw_decal_ellipse(center + Vector2(dot[0], dot[1]), Vector2.ONE * dot[2], 0, color)
 
 
 func _draw_portal(e: Dictionary, t: float) -> void:
@@ -320,7 +345,7 @@ func _draw_player() -> void:
 	draw_colored_polygon(rr(hb.x - 22, hb.y - 4, 44, 8, 4), Color(42 / 255.0, 33 / 255.0, 64 / 255.0, 0.55))
 	if hp > 0:
 		var hc := Color("#3fc46a") if hp > 0.5 else (Color("#ffb020") if hp > 0.25 else Color("#ff3b4e"))
-		draw_colored_polygon(rr(hb.x - 21, hb.y - 3, maxf(6, 42 * hp), 6, 3), hc)
+		draw_colored_polygon(hp_fill_polygon(hb, hp), hc)
 
 
 func _draw_particles() -> void:

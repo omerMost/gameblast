@@ -224,6 +224,7 @@ func _physics_process(_dt: float) -> void:
 			player.p.cause = "fall"
 		kill_player(Vector2.ZERO, false)
 	_update_enemies()
+	_update_rag_bleeding()
 	var moving := false
 	for b in bodies.duplicate():
 		if b.linear_velocity.length() / C.STEP > 0.35:
@@ -851,6 +852,19 @@ func predict() -> Array:
 
 # ---------------- FX (cosmetic only, never touches physics) ----------------
 
+## Prototype: moving ragdoll parts bleed every third physics tick until bleed expires.
+func _update_rag_bleeding() -> void:
+	if sim % 3 != 0:
+		return
+	for r in rags:
+		if r.p.bleed <= sim or not in_world(r):
+			continue
+		var v: Vector2 = r.linear_velocity / C.STEP
+		if v.length() < 0.3 and randf() < 0.6:
+			continue
+		blood(r.global_position.x, r.global_position.y, v.x * 40 + frnd(-50, 50), v.y * 40 + frnd(-80, 10), frnd(1.8, 3.2), r.p.col)
+
+
 func blood(x: float, y: float, vx: float, vy: float, r: float, col: Array) -> void:
 	if Save.prog.blood:
 		particles.append({"t": "blood", "x": x, "y": y, "vx": vx, "vy": vy, "r": r, "g": 1400.0, "life": 0.0, "max": 2.2})
@@ -929,7 +943,7 @@ func _update_particles(dt: float) -> void:
 		if p.has("spin"):
 			p.a = p.get("a", 0.0) + p.spin * dt
 		if p.t == "blood" and point_in_static(Vector2(p.x, p.y)):
-			add_decal({"t": "blood", "x": p.x, "y": p.y, "r": p.r * frnd(1.3, 2.6), "sx": 1 + minf(1.5, absf(p.vx) / 300)})
+			add_decal({"t": "blood", "x": p.x, "y": p.y, "r": p.r * frnd(1.3, 2.6), "sx": 1 + minf(1.5, absf(p.vx) / 300), "a": atan2(p.vy, p.vx) * 0.15, "dots": [[frnd(-8, 8), frnd(-3, 3), frnd(0.8, 2)], [frnd(-10, 10), frnd(-3, 3), frnd(0.6, 1.6)]]})
 			p.life = p.max
 		if p.life < p.max:
 			keep.append(p)

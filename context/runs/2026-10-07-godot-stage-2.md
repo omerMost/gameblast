@@ -8,7 +8,7 @@ By morning, every stage-2 enemy and feature from the web prototype (`prototype/i
 ## Checklist (one verified commit each; `./check.sh` green after every step)
 0. Run file (this), then `check.sh` at the repo root (runs `godot/tests/suites.txt`; fails on exit≠0, script error, TIMEOUT, or no `RESULT: PASS`).
 1. Player damage and death causes, and the death screen with cause + tip.
-2. FX and the blood toggle.
+2. **Done:** FX and the blood toggle, including ragdoll bleeding, ground-clipped decals and low-HP fill.
 3. Archers (arcing arrows that stick). Level 19 "Archers".
 4. Knights (run, jump, climb, frontal shield blocks blasts, drop real weapons). Level 20 "Knights".
 5. Jetpack troopers (thrown grenades with a landing telegraph, the pack explodes). Level 25 "Jetpacks".
@@ -28,3 +28,6 @@ By morning, every stage-2 enemy and feature from the web prototype (`prototype/i
 
 ## Provisional calls made at kick-off
 - **P1 Level numbering:** `Levels.LEVELS` stays indexed by prototype number. Levels that aren't ported yet are `null` placeholders (stage 3 fills them in), and the level select and the sweep skip them. That way level 19 is still "Archers".
+
+## Codex continuation
+Resumed the existing worktree/branch after reviewing its usage-limit session and morning page. Added a build guide and level-data validation; independent world/audio work uses isolated worktrees. No merge authorization is inferred from resuming.
