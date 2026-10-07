@@ -11,3 +11,5 @@
 **Source details:** jet pack explodes after14ticks; grenade warning ring follows current position. Dragon hint simplifies its behavior: executable source also accepts any blast within32px of its open mouth, alongside grenade gulp/death40ticks later. Port preserves executable source.
 
 **Weak spots / provisional:** custom distance constraints/sparse slots (ADR0007), rope/hover/physics feel (ADR0006) and generated PCM/filter/echo parity need human comparison; audio has not been speaker-auditioned. Flat Godot FX replace gradients. Bot replays may need bounded fallback because physics depends on prior simulation history. Some headless stress exits warn about audio playback/WAV resources; diagnostics found zero orphaned game nodes, dedicated audio suite is clean, harmful cleanup trials reverted. Follow-ups are in backlog. No new decision cards.
+
+**Merge outcome (2026-10-07):** after stage3/all40 levels, stage4 Android install and positive device feedback, the user said "merge". Verified stages2–4 were fast-forwarded into main; the pending-review status above records the original handoff. Scratch diagnostics remain separate.

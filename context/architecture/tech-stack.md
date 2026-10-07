@@ -9,7 +9,7 @@ Seed this file during install (don't leave blank) — stack choices are usually 
 
 One section per layer. For each choice: what we picked + one-line rationale. Resist writing prose — this is a lookup table, not an essay.
 
-> Status 2026-10-07: the prototype is still the spec. The Godot port has stage2 verified on its run branch; stage3 adds all40 original levels and bot proofs on `codex/stage3-content`. Stage4 builds a signed Android debug APK on `codex/stage4-android`; physical-device touch, rendering and saved progress have been verified.
+> Status 2026-10-07: the prototype remains the spec. Stages1–4 are merged into `main`: all40 original levels, bot proofs, native enemies/world/audio and signed Android debug export. Physical-device touch, rendering, save persistence and user feel feedback are verified.
 
 ## Runtime / language
 

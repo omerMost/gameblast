@@ -30,3 +30,5 @@ When you complete a backlog item, move its bullet from `backlog.md` to here in t
 - [x] 2026-10-07 — Device feedback follow-up: music/blood settings are stable56px toggle buttons, verified by real taps and save values. Decals retain clipped/pretriangulated meshes; Android SFX warm at startup. Phone samples held60FPS with101marks during play and260marks after a win; missile direct-shot test completed without a stall. Debug metrics use wall time and report level/state/draw CPU.
 
 - [x] 2026-10-07 — User confirmed the updated connected-phone build feels good: "ok it feels good". Closes the requested device feel follow-up after toggle/rendering/audio fixes; this is not an all-device or all-level acceptance claim.
+
+- [x] 2026-10-07 — User authorized "merge"; fast-forwarded verified stages2–4 and session notes into main, preserving all checkpoint history. Scratch worktrees remain separate.

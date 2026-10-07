@@ -21,7 +21,6 @@ _(Mid-flight or top-priority. Usually 1–3 items.)_
 
 _(Approved, ready to pick up, not started yet.)_
 
-- [ ] Review stage2 morning page and stages3–4 (`codex/stage4-android`, all40 levels and device-installed debug APK) before merging their unmerged ancestry; main still stage1.
 - [ ] Audition procedural PCM music/SFX through speakers and compare rope/hover/armor feel with Matter; automated verification is complete, perceptual parity provisional.
 
 - [ ] Extend `check.sh` to the web prototype through `window.__dbg`; Godot registered suites, content validator and real-input bot are implemented.
